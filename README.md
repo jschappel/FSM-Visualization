@@ -14,3 +14,11 @@
 - list-of-inputs
 - list-of-proessed-configs
 - list-of-unprocessed-configs
+
+### Example Layout
+![](Images/Interface.JPG)
+
+### NOTE:
+ - input => Red
+ - Button => Blue
+ - Labels => Green
