@@ -10,21 +10,26 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define E-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 
+;; TEST BUTTON FUNCTION!!!!
+(define (test-f)
+  (println "This is the test f"))
+
+
 ;; **** BUTTONS BELOW ***
-(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25))))
-(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25))))
+(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) test-f))
+(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) null))
 
-(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25))))
-(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25))))
+(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
+(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) null))
 
-(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71))))
-(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25))))
+(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) null))
+(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) null))
 
-(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71))))
-(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25))))
+(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) null))
+(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) null))
 
-(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25))))
-(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25))))
+(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) null))
+(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) null))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
@@ -168,9 +173,16 @@
   (overlay
    (text (string-upcase msg) 18 "Black")
    (rectangle 200 25 "outline" "transparent")))
-   
 
+
+; process-mouse-event: world integer integer string --> world
+(define (process-mouse-event w x y me)
+  (cond
+    [(string=? me "button-down")
+     (for-each (lambda (btn) (if (button-pressed? x y btn) (begin (run-function btn) (println"button pressed")) null)) BUTTON-LIST)]
+    [else null]))
 
 (big-bang
     INIT-WORLD
-  (on-draw draw-world))
+  (on-draw draw-world)
+  (on-mouse process-mouse-event))

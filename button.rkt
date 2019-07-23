@@ -10,6 +10,7 @@
  (struct-out button)
  (struct-out posn)
  draw-button
+ run-function
  button-pressed?)
 
 
@@ -24,7 +25,8 @@
 ;; - color: String that represents the background color of the button
 ;; - rounded?: Boolean representing the shape of the button. #t if rounded.
 ;; - location: posn that represents the location for the button
-(struct button (width height text type color rounded? location))
+;; - onClick: A function to be run if the button is pressed
+(struct button (width height text type color rounded? location onClick))
 
 
 ;; draw-button: button posn scene -> scene
@@ -53,3 +55,10 @@
                (< mouse-y (+ (posn-y (button-location btn)) (/ (button-height btn) 2)))))
      #t]
     [else #f]))
+
+;; run-function: button -> procedure
+;; Purpose: Runs a buttons onClick function if the function has one. Else retunrs null
+(define (run-function btn)
+  (cond
+    [(procedure? (button-onClick btn)) (button-onClick btn) ((button-onClick btn))]
+    [else null]))
