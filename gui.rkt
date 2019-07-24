@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe "button.rkt" "posn.rkt")
+(require 2htdp/image 2htdp/universe "button.rkt" "posn.rkt" "input.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -38,6 +38,12 @@
                           BTN-ADD-END BTN-REMOVE-END
                           BTN-ADD-RULES BTN-REMOVE-RULES))
 
+;; INPUT FIELDS BELOW
+(define IPF-STATE (textbox 150 25 (make-color 110 162 245) "" (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
+
+;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
+(define INPUT-LIST (list IPF-STATE))
+
 
 (define-struct world (string)) ;; TODO add stuff to world
 
@@ -56,7 +62,8 @@
                                                                                                                         (draw-button BTN-ADD-END
                                                                                                                                      (draw-button BTN-REMOVE-END
                                                                                                                                                   (draw-button  BTN-ADD-RULES
-                                                                                                                                                                (draw-button BTN-REMOVE-RULES E-SCENE))))))))))))))
+                                                                                                                                                                (draw-button BTN-REMOVE-RULES
+                                                                                                                                                                             (draw-textbox IPF-STATE E-SCENE)))))))))))))))
 
 
 ;; top-input-label: null -> image
