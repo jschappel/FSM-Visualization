@@ -2,31 +2,28 @@
 
 (require 2htdp/image 2htdp/universe "posn.rkt")
 
-
-;; ***** input.rkt *****
-;; This file contains the functionality for an input field
-
-
-(provide
- (struct-out textbox)
- draw-textbox
- textbox-pressed?
- add-text
- remove-text
- set-active
- set-inactive)
-
 (define COLOR-CHANGER 2) ;; The number to change a color
 
+(define E-SCENE (empty-scene 600 100 "yellow"))
 
-;; textbox: A structure that represents a GUI Input box
-;; - width: integer, the width of the textbox
-;; - height: integer, the height of the textbox
-;; - color: color-struct, the color of the textbox
-;; - text: string, the text to be displayed
-;; - location: posn-struct, the position of the textbox on the scene
-;; - active: boolean, ALWAYS SET TO FALSE.
+(define TBOX (rectangle 500 50 "solid" "green"))
+
 (struct textbox (width height color text location active))
+
+
+(define BOX (textbox 500 50 (make-color 100 0 250) "" (posn 300 50) #f))
+
+(define-struct world (input))
+
+(define INIT-WORLD (make-world ""))
+
+(define A-WORLD (make-world "Marco"))
+
+;;(define (draw-world w)
+;;  (overlay (text (string-upcase (world-input w)) 32 "black") TBOX E-SCENE))
+
+(define (draw-world x)
+  (draw-textbox BOX E-SCENE))
 
 ;; draw-button: textbox scene -> scene
 ;; Purpose: Draws a given textbox onto the scene
@@ -84,3 +81,37 @@
    (* (color-red c) COLOR-CHANGER)
    (* (color-blue c) COLOR-CHANGER)
    (* (color-blue c) COLOR-CHANGER)))
+
+
+(define (process-key w k)
+  (cond [(textbox-active BOX)
+         (cond
+           [(or (or (key=? k "-") (key=? k " "))
+                (string<=? "a" k "z"))
+            (make-world (string-append (world-input w) k))]
+           [(key=? k "\b")
+            (make-world (substring (world-input w)
+                                   0
+                                   (sub1 (string-length (world-input w)))))]
+           [else w])]
+        [else w]))
+
+(define (process-mouse-event w x y me)
+  (cond
+    [(string=? me "button-down")
+     (cond
+       [(textbox-pressed? x y BOX) (begin
+                                 (set! BOX (set-active BOX))
+                                 (println "Textbox pressed"))]
+       [else null])]
+    [else null]))
+
+
+(big-bang
+    INIT-WORLD
+  (on-draw draw-world)
+  (on-key process-key)
+  (on-mouse process-mouse-event))
+
+
+

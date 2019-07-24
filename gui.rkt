@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe "button.rkt")
+(require 2htdp/image 2htdp/universe "button.rkt" "posn.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene

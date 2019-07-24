@@ -1,11 +1,11 @@
 #lang racket
-(require 2htdp/image 2htdp/universe)
+(require 2htdp/image 2htdp/universe "posn.rkt")
 
 ;; ------- BUTTON -------
 ;; This class holds the buttons functionality and structure
 
 
-;; Export necessary functions
+;; Export necessary functions/structures
 (provide
  (struct-out button)
  (struct-out posn)
@@ -13,9 +13,6 @@
  run-function
  button-pressed?)
 
-
-;; Basic definition for posn
-(struct posn (x y))
 
 ;; button: A structurre that represents a button
 ;; - width: integer representing the width of the button
