@@ -10,6 +10,41 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define E-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 
+;; WORLD GLOBAL VARIABLES
+(define STATE-LIST '()) ;; The list of states for the machine 
+(define SYMBOL-LIST '()) ;; The list of symbols for the machine
+(define START-STATE null) ;; The starting state of the machine
+(define FINAL-STATE-LIST '()) ;; The list of final states that the machine has
+(define RULE-LIST '()) ;; The list of rules that the machine must follow
+(define SIGMA-LIST '()) ;; The list of sigma for the mahcine
+(define TAPE-POSITION 0) ;; The current position on the tape
+(define CURRENT-RULE null) ;; The current rule that the machine is following
+(define CURRENT-STATE null) ;; The current state that the machine is in
+(define PROCESSED-CONFIG-LIST '()) ;; TODO
+(define UNPROCESSED-CONFIG-LIST '()) ;; TODO
+
+;; world: The world for the GUI
+;; - state-list:
+;; - symbol-list:
+;; - start-state:
+;; - final-state-list:
+;; - rule-list:
+;; - sigma-list:
+;; - tape-position:
+;; - cur-rule:
+;; - cur-state:
+;; - button-list:
+;; - input-list:
+;; - processed-config-list:
+;; - unprocessed-config-list:
+(define-struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list))
+
+
+
+
+
+
+
 ;; TEST BUTTON FUNCTION!!!!
 (define (test-f)
   (println "This is the test f"))
@@ -45,9 +80,9 @@
 (define INPUT-LIST (list IPF-STATE))
 
 
-(define-struct world (string)) ;; TODO add stuff to world
-
-(define INIT-WORLD (make-world "Hello World")) ;; Create the empty world
+ ;; Initialize the world
+(define INIT-WORLD (make-world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
+                               CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST))
 
 (define (draw-world w)
   (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
