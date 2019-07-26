@@ -16,23 +16,25 @@
  set-active
  set-inactive)
 
-(define COLOR-CHANGER 2) ;; The number to change a color
+(define TINT-FACTOR .5) ;; The number to change a color
 
 
 ;; textbox: A structure that represents a GUI Input box
 ;; - width: integer, the width of the textbox
 ;; - height: integer, the height of the textbox
-;; - color: color-struct, the color of the textbox
+;; - color: (color-struct), current(active/inactive) color for the textbox. Set to same as orColor
+;; - orColor: (color-struct), The default color of the textbox
 ;; - text: string, the text to be displayed
+;; - charLength: integer that represents the max amount of characters allowed in the textbox
 ;; - location: posn-struct, the position of the textbox on the scene
 ;; - active: boolean, ALWAYS SET TO FALSE.
-(struct textbox (width height color text location active) #:transparent)
+(struct textbox (width height color orColor text charLength location active) #:transparent)
 
 ;; draw-button: textbox scene -> scene
 ;; Purpose: Draws a given textbox onto the scene
 (define (draw-textbox tBox scn)
   (place-image (overlay
-                (text (string-upcase (textbox-text tBox)) 24 "black")
+                (text (textbox-text tBox) 12 "black")
                 (rectangle (textbox-width tBox) (textbox-height tBox) "solid" (textbox-color tBox)))
                (posn-x (textbox-location tBox)) (posn-y (textbox-location tBox)) scn))
 
@@ -52,35 +54,37 @@
 ;; add-text: textbox string -> textbox
 ;; Purpose: Adds text onto an existing textbox
 (define (add-text tbox msg)
-  (textbox (textbox-width tbox) (textbox-height tbox) (textbox-color tbox) (string-append (textbox-text tbox) msg) (textbox-location tbox) (textbox-active tbox)))
+  (cond
+    [(> (+ (string-length msg) (string-length (textbox-text tbox))) (textbox-charLength tbox))
+     (textbox (textbox-width tbox) (textbox-height tbox) (textbox-color tbox) (textbox-orColor tbox) (textbox-text tbox) (textbox-charLength tbox) (textbox-location tbox) (textbox-active tbox))]
+    [else (textbox (textbox-width tbox) (textbox-height tbox) (textbox-color tbox) (textbox-orColor tbox) (string-append (textbox-text tbox) msg) (textbox-charLength tbox) (textbox-location tbox) (textbox-active tbox))]))
 
 ;; remove-text: textbox int -> textbox
 ;; Purpose: Removes a specified amount of text from a textbox 
 (define (remove-text tbox num)
-  (textbox (textbox-width tbox) (textbox-height tbox) (textbox-color tbox) (substring (textbox-text tbox) 0 (- (string-length (textbox-text)) num)) (textbox-location tbox) (textbox-active tbox)))
+  (letrec(
+          ;; rmv-text: string num -> string
+          ;; Purpose: removes a gven number of text from a string. It the stiring is empty or the amount to remove is greater then the string length, will return an empty string.
+          (rmv-text (lambda (text num)
+                      (cond
+                        [(>= (string-length text) num) (substring (textbox-text tbox) 0 (- (string-length (textbox-text tbox)) num))]
+                        [else (substring (textbox-text tbox) 0 0)]))))
+    (textbox (textbox-width tbox) (textbox-height tbox) (textbox-color tbox) (textbox-orColor tbox) (rmv-text (textbox-text tbox) num) (textbox-charLength tbox) (textbox-location tbox) (textbox-active tbox))))
 
 ;; set-active: textbox -> textbox
 ;; Purpose: Sets a textbox to active
 (define (set-active tbox)
-  (textbox (textbox-width tbox) (textbox-height tbox) (active-color (textbox-color tbox)) (textbox-text tbox) (textbox-location tbox) #t))
+  (textbox (textbox-width tbox) (textbox-height tbox) (active-color (textbox-orColor tbox)) (textbox-orColor tbox) (textbox-text tbox) (textbox-charLength tbox) (textbox-location tbox) #t))
 
 ;; set-inactive: textbox -> textbox
 ;; Purpose: Sets a textbox to inactive
 (define (set-inactive tbox)
-  (textbox (textbox-width tbox) (textbox-height tbox) (inactive-color (textbox-color tbox)) (textbox-text tbox) (textbox-location tbox) #f))
+  (textbox (textbox-width tbox) (textbox-height tbox) (textbox-orColor tbox) (textbox-orColor tbox) (textbox-text tbox) (textbox-charLength tbox) (textbox-location tbox) #f))
 
 ;; active-color: color -> color
 ;; Purpose: given a color will shade the color so it becomes active
 (define (active-color c)
   (make-color
-   (truncate (/ (color-red c) COLOR-CHANGER))
-   (truncate (/ (color-blue c) COLOR-CHANGER))
-   (truncate (/ (color-blue c) COLOR-CHANGER))))
-
-;; inactive-color: color -> color
-;; Purpose: given a color will shade the color so it becomes inactive
-(define (inactive-color c)
-  (make-color
-   (* (color-red c) COLOR-CHANGER)
-   (* (color-blue c) COLOR-CHANGER)
-   (* (color-blue c) COLOR-CHANGER)))
+   (inexact->exact (truncate (+ (color-red c) (* (- 255 (color-red c)) TINT-FACTOR))))
+   (inexact->exact (truncate (+ (color-green c) (* (- 255 (color-green c)) TINT-FACTOR))))
+   (inexact->exact (truncate (+ (color-blue c) (* (- 255 (color-blue c)) TINT-FACTOR))))))

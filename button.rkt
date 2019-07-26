@@ -20,10 +20,11 @@
 ;; - text: String represting the text to go in the button
 ;; - type: String representing the type (solid, outline...)
 ;; - color: String that represents the background color of the button
+;; - fontSize: Natural Number that represents the font size
 ;; - rounded?: Boolean representing the shape of the button. #t if rounded.
 ;; - location: posn that represents the location for the button
 ;; - onClick: A function to be run if the button is pressed
-(struct button (width height text type color rounded? location onClick))
+(struct button (width height text type color fontSize rounded? location onClick))
 
 
 ;; draw-button: button posn scene -> scene
@@ -35,10 +36,10 @@
 ;; Purpose: creates an image that represents the button and then returns it
 (define (create-button btn)
   (cond
-    [(button-rounded? btn) (overlay (text (string-upcase (button-text btn)) 18 "black")
+    [(button-rounded? btn) (overlay (text (string-upcase (button-text btn)) (button-fontSize btn) "black")
                                     (ellipse (button-width btn) (button-height btn) (button-type btn) (button-color btn)))]
     [else 
-     (overlay (scale .5 (text (string-upcase (button-text btn)) 20 "black"))
+     (overlay (scale .5 (text (string-upcase (button-text btn)) (button-fontSize btn) "black"))
               (rectangle (button-width btn) (button-height btn) (button-type btn) (button-color btn)))]))
 
 ;; button-pressed? x y -> boolean

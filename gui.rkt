@@ -41,43 +41,53 @@
 
 
 
-
-
-
-
 ;; TEST BUTTON FUNCTION!!!!
 (define (test-f)
   (println "This is the test f"))
 
 
 ;; **** BUTTONS BELOW ***
-(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) test-f))
-(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) null))
+(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) test-f))
+(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) null))
 
-(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
-(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) null))
+(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
+(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) null))
 
-(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) null))
-(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) null))
+(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) null))
 
-(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) null))
-(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) null))
+(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) null))
 
-(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) null))
-(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) null))
+(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) null))
+
+
+(define BTN-NEXT (button 100 50 "NEXT" "solid" (make-color 230 142 174) 36 #f (posn (- WIDTH 275) 100) null))
+(define BTN-PREV (button 100 50 "PREV" "solid" (make-color 230 142 174) 36 #f (posn 75 100) null))
+(define BTN-RUN (button 100 50 "RUN" "solid" (make-color 230 142 174) 36 #f (posn 75 (- HEIGHT 115)) null))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
                           BTN-ADD-ALPHA BTN-REMOVE-ALPHA
                           BTN-ADD-START BTN-REMOVE-START
                           BTN-ADD-END BTN-REMOVE-END
-                          BTN-ADD-RULES BTN-REMOVE-RULES))
+                          BTN-ADD-RULES BTN-REMOVE-RULES
+                          BTN-RUN BTN-NEXT BTN-PREV))
 
-;; INPUT FIELDS BELOW
-(define IPF-STATE (textbox 150 25 (make-color 110 162 245) "" (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
+
+
+;; **** INPUT FIELDS BELOW ****
+(define IPF-STATE (textbox 150 25 (make-color 110 162 245) (make-color 110 162 245) "" 5 (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
+(define IPF-ALPHA (textbox 150 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
+(define IPF-START (textbox 75 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
+(define IPF-END (textbox 75 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 150) (- (* 4 CONTROL-BOX-H) 50)) #f))
+(define IPF-RULE1 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 1 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE2 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 1 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE3 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 1 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
 
 ;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
-(define INPUT-LIST (list IPF-STATE))
+(define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3))
 
 
 ;; Initialize the world
@@ -88,13 +98,13 @@
 
 (define (draw-world w)
   (letrec((draw-input-list (lambda (loi scn)
-           (cond
-             [(empty? loi) scn]
-             [else (draw-textbox (car loi) (draw-input-list (cdr loi) scn))])))
+                             (cond
+                               [(empty? loi) scn]
+                               [else (draw-textbox (car loi) (draw-input-list (cdr loi) scn))])))
           (draw-button-list (lambda (lob scn)
-           (cond
-             [(empty? lob) scn]
-             [else (draw-button (car lob) (draw-button-list (cdr lob) scn))]))))
+                              (cond
+                                [(empty? lob) scn]
+                                [else (draw-button (car lob) (draw-button-list (cdr lob) scn))]))))
     
     (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                  (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
@@ -107,7 +117,7 @@
 (define (top-input-label)
   (overlay
    (text (string-upcase "Input") 24 "Black")
-   (rectangle (/ WIDTH 11) TOP "outline" "red")))
+   (rectangle (/ WIDTH 11) TOP "outline" "blue")))
 
 
 ;; los-top-label: null -> Image
@@ -115,13 +125,11 @@
 (define (los-top-label)
   (overlay
    (text (string-upcase "List of sigmas goes here") 24 "Black")
-   (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "green")))
+   (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue")))
 
 
 ;; create-gui-bottom: null -> image
-;; Purpose: Creates the top of the gui layout
-;; create-gui-bottom: null -> image
-;; Purpose: Creates the top of the gui layout
+;; Purpose: Creates the bottom of the gui layout
 (define (create-gui-bottom)
   (overlay/align "left" "middle"
                  (align-items
@@ -135,7 +143,7 @@
 (define (rules-bottom-label)
   (overlay
    (text (string-upcase "Rules") 24 "Black")
-   (rectangle (/ WIDTH 11) BOTTOM "outline" "red")))
+   (rectangle (/ WIDTH 11) BOTTOM "outline" "blue")))
 
 ; create-gui-top: null -> image
 ;; Creates the top of the gui layout
@@ -158,7 +166,7 @@
 (define (lor-bottom-label)
   (overlay
    (text (string-upcase "List of rules will go here") 24 "Black")
-   (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "green")))
+   (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")))
 
 ;; create-gui-left: null -> image
 ;; Purpose: creates the left conrol panel for the 
@@ -218,65 +226,81 @@
    (rectangle 200 25 "outline" "transparent")))
 
 
-; process-mouse-event: world integer integer string --> world
+;; process-mouse-event: world integer integer string --> world
+;; Purpose: processes a users mouse event
 (define (process-mouse-event w x y me)
-  (cond
-    [(string=? me "button-down")
-     (define buttonPressed (check-button-list (world-button-list w) x y))
-     (cond
-       [(not (null? buttonPressed)) (begin
-                                      (run-function buttonPressed)
-                                      (redraw-world w))]
-       [else (create-new-world w (check-and-set (world-input-list w) x y))
+  (letrec
+      ;; Check-and-set: list-of-input-fields mouse-x mouse-y -> list-of-input-fields
+      ;; Purpose: sets the input fields to active or inactive depending on where the mouse click happens
+      ((check-and-set (lambda (loi x y)
+                        (cond
+                          [(empty? loi) '()]
+                          [(textbox-pressed? x y (car loi))
+                           (cond
+                             [(equal? (textbox-active (car loi)) #t) (cons (car loi) (check-and-set (cdr loi) x y))]
+                             [else (cons (set-active (car loi)) (check-and-set (cdr loi) x y))])]
+                          [else
+                           (cond
+                             [(equal? (textbox-active (car loi)) #t) (cons (set-inactive (car loi)) (check-and-set (cdr loi) x y))]
+                             [else (cons (car loi) (check-and-set (cdr loi) x y))])])))
+       
+       ;; check-button-list: list-of-buttons mouse-x mosue-y -> button
+       ;; Purpose: Iterates over a list of buttons and checks if one was pressed. If so then returns the button otherwise
+       ;; it returns null.
+       (check-button-list (lambda (lob x y)
+                            (cond
+                              [(empty? lob) null]
+                              [(button-pressed? x y (car lob)) (car lob)]
+                              [else (check-button-list (cdr lob) x y)]))))
+    (cond
+      [(string=? me "button-down")
+       (define buttonPressed (check-button-list (world-button-list w) x y))
+       (cond
+         [(not (null? buttonPressed)) (begin
+                                        (run-function buttonPressed)
+                                        (redraw-world w))]
+         [else (create-new-world-input w (check-and-set (world-input-list w) x y))])]
+      [else (redraw-world w)])))
 
-             ;;(define inputPressed (check-input-list (world-input-list w) x y))
-             ;; (cond
-             ;;   [(not (null? inputPressed))
-             ;;    (begin
-             ;;    (deactivate-inputs (world-input-list w))
-             ;;    (set-active inputPressed)
-             ;;   [else (println "More checks needed")])
-             ])]
-    [else (redraw-world w)]))
 
-(define (create-new-world a-world loi)
+
+
+;; process-key: world key-> world
+;; Purpose: processes a key users key event
+(define (process-key w k)
+  (letrec
+      ((check-and-add (lambda (loi action)
+                        (cond
+                          [(empty? loi) '()]
+                          [(equal? (textbox-active (car loi)) #t)
+                           (cond
+                             [(equal? action #t) (cons (add-text (car loi) k) (check-and-add (cdr loi) action))]
+                             [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
+                          [else (cons (car loi) (check-and-add (cdr loi) action))]))))
+    (cond
+      [(or (or (key=? k "-") (key=? k " "))(string<=? "a" k "z"))
+       (create-new-world-input w (check-and-add (world-input-list w) #t))]
+      [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
+      [else w])))
+
+
+;; create-new-world-input: world loist-of-input-fields -> world
+;; Purpose: Creates a new world to handle the list-of-input-fields changes
+(define (create-new-world-input a-world loi)
   (make-world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
               (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
               loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
 
-;; check-button-list: list-of-buttons mouse-x mosue-y -> button
-;; Purpose: Iterates over a list of buttons and checks if one was pressed. If so then returns the button otherwise
-;; it returns null.
-(define (check-button-list lob x y)
-  (cond
-    [(empty? lob) null]
-    [(button-pressed? x y (car lob)) (car lob)]
-    [else (check-button-list (cdr lob) x y)]))
-
-
-
-(define (check-and-set loi x y)
-  (cond
-    [(empty? loi) '()]
-    [(textbox-pressed? x y (car loi))
-     (cond
-       [(equal? (textbox-active (car loi)) #t) (cons (car loi) (check-and-set (cdr loi) x y))]
-       [else (begin (println "set to active")(cons (set-active (car loi)) (check-and-set (cdr loi) x y)))])]
-     
-    [else
-     (cond
-       [(equal? (textbox-active (car loi)) #t) (begin (println "set to inactive")(cons (set-inactive (car loi)) (check-and-set (cdr loi) x y)))]
-       [else (cons (car loi) (check-and-set (cdr loi) x y))])]))
-
-
+;; redraw-world: world -> world
+;; redraws the same world as before
 (define (redraw-world a-world)
   (make-world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
               (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
               (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
   
 
-
 (big-bang
     INIT-WORLD
   (on-draw draw-world)
-  (on-mouse process-mouse-event))
+  (on-mouse process-mouse-event)
+  (on-key process-key))
