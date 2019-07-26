@@ -80,25 +80,26 @@
 (define INPUT-LIST (list IPF-STATE))
 
 
- ;; Initialize the world
+;; Initialize the world
 (define INIT-WORLD (make-world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
                                CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST))
 
+
+
 (define (draw-world w)
-  (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-               (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
-                            (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                         (draw-button BTN-ADD-STATE
-                                                      (draw-button BTN-REMOVE-STATE
-                                                                   (draw-button BTN-ADD-ALPHA
-                                                                                (draw-button BTN-REMOVE-ALPHA
-                                                                                             (draw-button  BTN-ADD-START
-                                                                                                           (draw-button BTN-REMOVE-START
-                                                                                                                        (draw-button BTN-ADD-END
-                                                                                                                                     (draw-button BTN-REMOVE-END
-                                                                                                                                                  (draw-button  BTN-ADD-RULES
-                                                                                                                                                                (draw-button BTN-REMOVE-RULES
-                                                                                                                                                                             (draw-textbox IPF-STATE E-SCENE)))))))))))))))
+  (letrec((draw-input-list (lambda (loi scn)
+           (cond
+             [(empty? loi) scn]
+             [else (draw-textbox (car loi) (draw-input-list (cdr loi) scn))])))
+          (draw-button-list (lambda (lob scn)
+           (cond
+             [(empty? lob) scn]
+             [else (draw-button (car lob) (draw-button-list (cdr lob) scn))]))))
+    
+    (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                 (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                              (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                           (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))
 
 
 ;; top-input-label: null -> image
@@ -221,8 +222,59 @@
 (define (process-mouse-event w x y me)
   (cond
     [(string=? me "button-down")
-     (for-each (lambda (btn) (if (button-pressed? x y btn) (begin (run-function btn) (println"button pressed")) null)) BUTTON-LIST)]
-    [else null]))
+     (define buttonPressed (check-button-list (world-button-list w) x y))
+     (cond
+       [(not (null? buttonPressed)) (begin
+                                      (run-function buttonPressed)
+                                      (redraw-world w))]
+       [else (create-new-world w (check-and-set (world-input-list w) x y))
+
+             ;;(define inputPressed (check-input-list (world-input-list w) x y))
+             ;; (cond
+             ;;   [(not (null? inputPressed))
+             ;;    (begin
+             ;;    (deactivate-inputs (world-input-list w))
+             ;;    (set-active inputPressed)
+             ;;   [else (println "More checks needed")])
+             ])]
+    [else (redraw-world w)]))
+
+(define (create-new-world a-world loi)
+  (make-world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
+              (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
+              loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+
+;; check-button-list: list-of-buttons mouse-x mosue-y -> button
+;; Purpose: Iterates over a list of buttons and checks if one was pressed. If so then returns the button otherwise
+;; it returns null.
+(define (check-button-list lob x y)
+  (cond
+    [(empty? lob) null]
+    [(button-pressed? x y (car lob)) (car lob)]
+    [else (check-button-list (cdr lob) x y)]))
+
+
+
+(define (check-and-set loi x y)
+  (cond
+    [(empty? loi) '()]
+    [(textbox-pressed? x y (car loi))
+     (cond
+       [(equal? (textbox-active (car loi)) #t) (cons (car loi) (check-and-set (cdr loi) x y))]
+       [else (begin (println "set to active")(cons (set-active (car loi)) (check-and-set (cdr loi) x y)))])]
+     
+    [else
+     (cond
+       [(equal? (textbox-active (car loi)) #t) (begin (println "set to inactive")(cons (set-inactive (car loi)) (check-and-set (cdr loi) x y)))]
+       [else (cons (car loi) (check-and-set (cdr loi) x y))])]))
+
+
+(define (redraw-world a-world)
+  (make-world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
+              (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
+              (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+  
+
 
 (big-bang
     INIT-WORLD

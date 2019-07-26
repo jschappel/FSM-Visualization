@@ -26,7 +26,7 @@
 ;; - text: string, the text to be displayed
 ;; - location: posn-struct, the position of the textbox on the scene
 ;; - active: boolean, ALWAYS SET TO FALSE.
-(struct textbox (width height color text location active))
+(struct textbox (width height color text location active) #:transparent)
 
 ;; draw-button: textbox scene -> scene
 ;; Purpose: Draws a given textbox onto the scene
@@ -62,20 +62,20 @@
 ;; set-active: textbox -> textbox
 ;; Purpose: Sets a textbox to active
 (define (set-active tbox)
-  (textbox (textbox-width tbox) (textbox-height tbox) (active-color (textbox-color tbox)) (textbox-text tbox) (textbox-location tbox) #true))
+  (textbox (textbox-width tbox) (textbox-height tbox) (active-color (textbox-color tbox)) (textbox-text tbox) (textbox-location tbox) #t))
 
 ;; set-inactive: textbox -> textbox
 ;; Purpose: Sets a textbox to inactive
 (define (set-inactive tbox)
-  (textbox (textbox-width tbox) (textbox-height tbox) (inactive-color (textbox-color tbox)) (textbox-text tbox) (textbox-location tbox) #false))
+  (textbox (textbox-width tbox) (textbox-height tbox) (inactive-color (textbox-color tbox)) (textbox-text tbox) (textbox-location tbox) #f))
 
 ;; active-color: color -> color
 ;; Purpose: given a color will shade the color so it becomes active
 (define (active-color c)
   (make-color
-   (/ (color-red c) COLOR-CHANGER)
-   (/ (color-blue c) COLOR-CHANGER)
-   (/ (color-blue c) COLOR-CHANGER)))
+   (truncate (/ (color-red c) COLOR-CHANGER))
+   (truncate (/ (color-blue c) COLOR-CHANGER))
+   (truncate (/ (color-blue c) COLOR-CHANGER))))
 
 ;; inactive-color: color -> color
 ;; Purpose: given a color will shade the color so it becomes inactive
