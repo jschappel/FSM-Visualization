@@ -275,7 +275,6 @@
                              [(equal? action #t) (cons (add-text (car loi) k) (check-and-add (cdr loi) action))]
                              [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
-    (println k)
     (cond
       [(or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z"))
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
