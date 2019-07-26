@@ -54,9 +54,9 @@
      #t]
     [else #f]))
 
-;; run-function: button -> procedure
-;; Purpose: Runs a buttons onClick function if the function has one. Else retunrs null
-(define (run-function btn)
+;; run-function: button world -> procedure
+;; Purpose: Runs a buttons onClick function if the function has one. Else returns null
+(define (run-function btn a-world)
   (cond
-    [(procedure? (button-onClick btn)) (button-onClick btn) ((button-onClick btn))]
+    [(procedure? (button-onClick btn)) ((button-onClick btn) a-world)]
     [else null]))

@@ -42,12 +42,16 @@
 
 
 ;; TEST BUTTON FUNCTION!!!!
-(define (test-f)
-  (println "This is the test f"))
+(define (test-f a-world)
+  (println "This is the test f")
+  (println (textbox-text (car (world-input-list a-world)))))
 
+(define T1 (lambda (w)
+             (print "The state supplied is: ")
+             (print (textbox-text (car (world-input-list w))))))
 
 ;; **** BUTTONS BELOW ***
-(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) test-f))
+(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
 (define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) null))
 
 (define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
@@ -257,7 +261,7 @@
        (define buttonPressed (check-button-list (world-button-list w) x y))
        (cond
          [(not (null? buttonPressed)) (begin
-                                        (run-function buttonPressed)
+                                        (run-function buttonPressed w)
                                         (redraw-world w))]
          [else (create-new-world-input w (check-and-set (world-input-list w) x y))])]
       [else (redraw-world w)])))
@@ -301,7 +305,7 @@
 
 (big-bang
     INIT-WORLD
-  (name "FSM GUI (ALPHA)")
+  (name "FSM GUI (Early ALPHA)")
   (on-draw draw-world)
   (on-mouse process-mouse-event)
   (on-key process-key))
