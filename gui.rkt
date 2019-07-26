@@ -40,15 +40,9 @@
 (define-struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list))
 
 
-
-;; TEST BUTTON FUNCTION!!!!
-(define (test-f a-world)
-  (println "This is the test f")
-  (println (textbox-text (car (world-input-list a-world)))))
-
 (define T1 (lambda (w)
-             (print "The state supplied is: ")
-             (print (textbox-text (car (world-input-list w))))))
+             (println "The state supplied is: ")
+             (println (textbox-text (car (world-input-list w))))))
 
 ;; **** BUTTONS BELOW ***
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
@@ -281,8 +275,9 @@
                              [(equal? action #t) (cons (add-text (car loi) k) (check-and-add (cdr loi) action))]
                              [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
+    (println k)
     (cond
-      [(or (or (key=? k "-") (key=? k " "))(string<=? "a" k "z"))
+      [(or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z"))
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
