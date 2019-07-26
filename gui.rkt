@@ -53,11 +53,11 @@
 (define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
 (define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) null))
 
-(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) null))
-(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) null))
+(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) null))
 
-(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) null))
-(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) null))
+(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) null))
 
 (define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) null))
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) null))
@@ -301,6 +301,7 @@
 
 (big-bang
     INIT-WORLD
+  (name "FSM GUI (ALPHA)")
   (on-draw draw-world)
   (on-mouse process-mouse-event)
   (on-key process-key))
