@@ -37,7 +37,7 @@
 ;; - input-list:
 ;; - processed-config-list:
 ;; - unprocessed-config-list:
-(define-struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list))
+(define-struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
 
 
 (define T1 (lambda (w)
@@ -276,7 +276,8 @@
                              [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
     (cond
-      [(or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z"))
+      [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z")) (not (equal? k "shift")))
+       (println k)
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
