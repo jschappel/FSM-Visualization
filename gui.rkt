@@ -37,13 +37,19 @@
 ;; - input-list:
 ;; - processed-config-list:
 ;; - unprocessed-config-list:
-(define-struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
+(struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
+
 
 
 (define T1 (lambda (w)
-             (println "The state supplied is: ")
-             (println (textbox-text (car (world-input-list w))))))
+             (println (list (textbox-text (car (world-input-list w)))))
+             (world (cons (textbox-text (car (world-input-list w))) (world-state-list w)) (world-symbol-list w)
+                    (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                    (world-cur-state w) (world-button-list w) (world-input-list w)
+                    (world-processed-config-list w) (world-unporcessed-config-list w))))
 
+                  
 ;; **** BUTTONS BELOW ***
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
 (define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) null))
@@ -89,9 +95,14 @@
 
 
 ;; Initialize the world
-(define INIT-WORLD (make-world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
-                               CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST))
-
+(define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
+                          CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST))
+;;;;;;;CIRCLE STUFF
+(define X0  (/ (-  WIDTH 200) 2))
+(define Y0 (/  HEIGHT 2))
+(define R 100)
+(define inner-R (- R 25))
+(define the-circle (circle R "outline" "transparent"))
 
 
 (define (draw-world w)
@@ -102,12 +113,27 @@
           (draw-button-list (lambda (lob scn)
                               (cond
                                 [(empty? lob) scn]
-                                [else (draw-button (car lob) (draw-button-list (cdr lob) scn))]))))
+                                [else (draw-button (car lob) (draw-button-list (cdr lob) scn))])))
+          (deg-shift (if (empty? (world-state-list w)) 0 (/ 360 (length (world-state-list w)))))
+          (get-x (lambda (theta rad) (truncate (+ (* rad (cos (degrees->radians theta))) X0))))
+                
+          (get-y(lambda (theta rad)
+            (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
+          
+          (draw-states
+           (lambda (l i s)
+             (cond[(empty? l) s]
+                  [else (place-image (text  (car l) 25 "red")
+                                     (get-x (* deg-shift i) R)
+                                     (get-y (* deg-shift i) R)
+                                     (draw-states (cdr l) (add1 i) s))]))))
+          
     
-    (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                 (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
-                              (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                           (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))
+    (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
+      (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+               (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                            (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                         (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))))
 
 
 ;; top-input-label: null -> image
@@ -255,8 +281,7 @@
        (define buttonPressed (check-button-list (world-button-list w) x y))
        (cond
          [(not (null? buttonPressed)) (begin
-                                        (run-function buttonPressed w)
-                                        (redraw-world w))]
+                                        (run-function buttonPressed w))]
          [else (create-new-world-input w (check-and-set (world-input-list w) x y))])]
       [else (redraw-world w)])))
 
@@ -286,16 +311,16 @@
 ;; create-new-world-input: world loist-of-input-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-input-fields changes
 (define (create-new-world-input a-world loi)
-  (make-world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
-              (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-              loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+  (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
+         (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
+         loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
 
 ;; redraw-world: world -> world
 ;; redraws the same world as before
 (define (redraw-world a-world)
-  (make-world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
-              (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-              (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+  (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
+         (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
+         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
   
 
 (big-bang
