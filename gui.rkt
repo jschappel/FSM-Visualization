@@ -39,10 +39,15 @@
 ;; - unprocessed-config-list:
 (struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
 
-
+;; THIS FUNCTION IS JUST A PLACEHOLDER
+(define NULL-FUNCTION (lambda (w)
+                        (world (cons (textbox-text (car (world-input-list w))) (world-state-list w)) (world-symbol-list w)
+                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                               (world-cur-state w) (world-button-list w) (world-input-list w)
+                               (world-processed-config-list w) (world-unporcessed-config-list w))))
 
 (define T1 (lambda (w)
-             (println (list (textbox-text (car (world-input-list w)))))
              (world (cons (textbox-text (car (world-input-list w))) (world-state-list w)) (world-symbol-list w)
                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -51,31 +56,31 @@
 (define T2 (lambda(w)
              (world(remove (textbox-text (car (world-input-list w))) (world-state-list w))
                    (world-symbol-list w)  (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                    (world-cur-state w) (world-button-list w) (world-input-list w)
-                    (world-processed-config-list w) (world-unporcessed-config-list w))))
+                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                   (world-cur-state w) (world-button-list w) (world-input-list w)
+                   (world-processed-config-list w) (world-unporcessed-config-list w))))
 
                   
 ;; **** BUTTONS BELOW ***
-(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
-(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) T2))
+(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
+(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) T2))
 
-(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
-(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) null))
+(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) NULL-FUNCTION))
 
-(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) null))
-(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) NULL-FUNCTION))
+(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
-(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) null))
-(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) 18 #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) NULL-FUNCTION))
+(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
-(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) null))
-(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) null))
+(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
 
-(define BTN-NEXT (button 100 50 "NEXT" "solid" (make-color 230 142 174) 36 #f (posn (- WIDTH 275) 100) null))
-(define BTN-PREV (button 100 50 "PREV" "solid" (make-color 230 142 174) 36 #f (posn 75 100) null))
-(define BTN-RUN (button 100 50 "RUN" "solid" (make-color 230 142 174) 36 #f (posn 75 (- HEIGHT 115)) null))
+(define BTN-NEXT (button 100 50 "NEXT" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn (- WIDTH 275) 100) NULL-FUNCTION))
+(define BTN-PREV (button 100 50 "PREV" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 75 100) NULL-FUNCTION))
+(define BTN-RUN (button 100 50 "RUN" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 75 (- HEIGHT 115)) NULL-FUNCTION))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
@@ -124,7 +129,7 @@
           (get-x (lambda (theta rad) (truncate (+ (* rad (cos (degrees->radians theta))) X0))))
                 
           (get-y(lambda (theta rad)
-            (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
+                  (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
           
           (draw-states
            (lambda (l i s)
@@ -136,10 +141,10 @@
           
     
     (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
-      (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-               (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
-                            (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                         (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))))
+                                               (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                            (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                                                                         (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                      (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))))
 
 
 ;; top-input-label: null -> image
@@ -281,14 +286,24 @@
                             (cond
                               [(empty? lob) null]
                               [(button-pressed? x y (car lob)) (car lob)]
-                              [else (check-button-list (cdr lob) x y)]))))
+                              [else (check-button-list (cdr lob) x y)])))
+
+       ;; active-button-list: list-of-buttons mouse-x mouse-y -> list-of-buttons
+       ;; Purpose: Creates a new list of buttons where the click button is set to active
+       (active-button-list (lambda (lob x y)
+                             (cond
+                               [(empty? lob) '()]
+                               [(button-pressed? x y (car lob)) (cons (set-active-button (car lob)) (active-button-list (cdr lob) x y))]
+                               [else (cons (car lob) (active-button-list (cdr lob) x y))]))))
+    
     (cond
       [(string=? me "button-down")
        (define buttonPressed (check-button-list (world-button-list w) x y))
        (cond
-         [(not (null? buttonPressed)) (begin
-                                        (run-function buttonPressed w))]
+         [(not (null? buttonPressed)) (run-function buttonPressed (create-new-world-button w (active-button-list (world-button-list w) x y)))]
          [else (create-new-world-input w (check-and-set (world-input-list w) x y))])]
+      [(string=? me "button-up")
+       (create-new-world-button w (map (lambda (x) (set-inactive-button x)) (world-button-list w)))]
       [else (redraw-world w)])))
 
 
@@ -308,18 +323,24 @@
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
     (cond
       [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z")) (not (equal? k "shift")))
-       (println k)
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
 
 
-;; create-new-world-input: world loist-of-input-fields -> world
+;; create-new-world-input: world list-of-input-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-input-fields changes
 (define (create-new-world-input a-world loi)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
          loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+
+;; create-new-world-button: world list-of-button-fields -> world
+;; Purpose: Creates a new world to handle the list-of-button-fields changes
+(define (create-new-world-button a-world lob)
+  (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
+         (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) lob
+         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
 
 ;; redraw-world: world -> world
 ;; redraws the same world as before
