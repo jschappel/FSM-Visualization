@@ -10,6 +10,14 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define E-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 
+;; CIRCLE VARIABLES
+(define X0  (/ (-  WIDTH 200) 2))
+(define Y0 (/  HEIGHT 2))
+(define R 175)
+(define inner-R (- R 25))
+(define the-circle (circle R "outline" "transparent"))
+
+
 ;; WORLD GLOBAL VARIABLES
 (define STATE-LIST '()) ;; The list of states for the machine 
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
@@ -108,13 +116,6 @@
 ;; Initialize the world
 (define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
                           CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST))
-;;;;;;;CIRCLE STUFF
-(define X0  (/ (-  WIDTH 200) 2))
-(define Y0 (/  HEIGHT 2))
-(define R 100)
-(define inner-R (- R 25))
-(define the-circle (circle R "outline" "transparent"))
-
 
 (define (draw-world w)
   (letrec((draw-input-list (lambda (loi scn)
@@ -322,7 +323,7 @@
                              [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
     (cond
-      [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z")) (not (equal? k "shift")))
+      [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z") (string<=? "1" (string-downcase k) "9")) (not (equal? k "shift")))
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
