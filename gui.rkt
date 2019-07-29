@@ -48,11 +48,17 @@
                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                     (world-cur-state w) (world-button-list w) (world-input-list w)
                     (world-processed-config-list w) (world-unporcessed-config-list w))))
+(define T2 (lambda(w)
+             (world(remove (textbox-text (car (world-input-list w))) (world-state-list w))
+                   (world-symbol-list w)  (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                    (world-cur-state w) (world-button-list w) (world-input-list w)
+                    (world-processed-config-list w) (world-unporcessed-config-list w))))
 
                   
 ;; **** BUTTONS BELOW ***
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
-(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) null))
+(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) T2))
 
 (define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) null))
 (define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) 24 #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) null))
