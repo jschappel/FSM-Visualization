@@ -17,8 +17,6 @@
 (define inner-R (- R 25))
 (define the-circle (circle R "outline" "transparent"))
 
-(define SCALE 1)
-
 ;; WORLD GLOBAL VARIABLES
 (define STATE-LIST '()) ;; The list of states for the machine 
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
@@ -88,10 +86,23 @@
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
                               (world-processed-config-list w) (world-unporcessed-config-list w))]))))
-                        
-    
 
-                  
+(define removeRule (lambda (w)
+                     (let ((input-list (world-input-list w))
+                        (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
+                        (r2 (string-trim (textbox-text (list-ref (world-input-list w) 5))))
+                        (r3 (string-trim (textbox-text (list-ref (world-input-list w) 6))))
+                        (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
+                    (cond
+                     [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
+                     [else
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (remove (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (world-cur-state w) (world-button-list w) new-input-list
+                              (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+
+
 ;; **** BUTTONS BELOW ***
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
 (define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) removeState))
@@ -106,7 +117,7 @@
 (define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
 (define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
-(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
 
 
 (define BTN-NEXT (button 100 50 "NEXT" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn (- WIDTH 275) 100) NULL-FUNCTION))
@@ -231,8 +242,7 @@
                                [(empty? lor) ""]
                                [else (string-append (car lor) " , " (list-to-string (cdr lor)))])))
            (text-str (list-to-string (reverse lor))))
-    (println SCALE)
-    (scale-text-to-image (text (substring text-str 0 (- (string-length text-str) 2)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") SCALE)))
+    (scale-text-to-image (text (substring text-str 0 (- (string-length text-str) 2)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)))
 
 
    
@@ -300,7 +310,7 @@
   (let ((newScale (- sc .2)))
     (cond
       [(> (image-width text) (image-width img))
-       (scale-text-to-image (scale newScale text) img SCALE)]
+       (scale-text-to-image (scale newScale text) img 1)]
       [else (overlay (scale sc text) img)])))
 
 ;; process-mouse-event: world integer integer string --> world
