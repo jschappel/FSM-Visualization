@@ -120,9 +120,9 @@
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
 
 
-(define BTN-NEXT (button 100 50 "NEXT" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn (- WIDTH 275) 100) NULL-FUNCTION))
-(define BTN-PREV (button 100 50 "PREV" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 75 100) NULL-FUNCTION))
-(define BTN-RUN (button 100 50 "RUN" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 75 (- HEIGHT 115)) NULL-FUNCTION))
+(define BTN-NEXT (button 100 50 "NEXT" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 60 100) NULL-FUNCTION))
+(define BTN-PREV (button 100 50 "PREV" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 60 160) NULL-FUNCTION))
+(define BTN-RUN (button 110 50 "GEN CODE" "solid" (make-color 230 142 174) (make-color 230 142 174) 36 #f #f (posn 65 (- HEIGHT 115)) NULL-FUNCTION))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
