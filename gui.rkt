@@ -17,13 +17,14 @@
 (define inner-R (- R 25))
 (define the-circle (circle R "outline" "transparent"))
 
+(define SCALE 1)
 
 ;; WORLD GLOBAL VARIABLES
 (define STATE-LIST '()) ;; The list of states for the machine 
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
 (define START-STATE null) ;; The starting state of the machine
 (define FINAL-STATE-LIST '()) ;; The list of final states that the machine has
-(define RULE-LIST '()) ;; The list of rules that the machine must follow
+(define RULE-LIST (list "(j j j)" "(i i i)" "(h h h)" "(g g g)"  "(f f f)" "(e e e)" "(d d d)" "(c c c)" "(b b b)" "(a a a)")) ;; The list of rules that the machine must follow
 (define SIGMA-LIST '()) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
@@ -51,14 +52,10 @@
 
 ;; THIS FUNCTION IS JUST A PLACEHOLDER
 (define NULL-FUNCTION (lambda (w)
-                        (world (cons (textbox-text (car (world-input-list w))) (world-state-list w)) (world-symbol-list w)
-                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                               (world-cur-state w) (world-button-list w) (world-input-list w)
-                               (world-processed-config-list w) (world-unporcessed-config-list w))))
+                        (redraw-world w)))
 
 (define addState (lambda (w)
-                   (let ((state (textbox-text (car (world-input-list w))))
+                   (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                      
                      (world (cons state (world-state-list w)) (world-symbol-list w)
@@ -68,7 +65,7 @@
                             (world-processed-config-list w) (world-unporcessed-config-list w)))))
 
 (define removeState (lambda(w)
-                      (let ((state (textbox-text (car (world-input-list w))))
+                      (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                             (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                         
                         (world(remove state (world-state-list w))
@@ -76,6 +73,23 @@
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
                               (world-processed-config-list w) (world-unporcessed-config-list w)))))
+
+(define addRule (lambda (w)
+                  (let ((input-list (world-input-list w))
+                        (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
+                        (r2 (string-trim (textbox-text (list-ref (world-input-list w) 5))))
+                        (r3 (string-trim (textbox-text (list-ref (world-input-list w) 6))))
+                        (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
+                    (cond
+                      [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
+                      [else
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (cons (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (world-cur-state w) (world-button-list w) new-input-list
+                              (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                        
+    
 
                   
 ;; **** BUTTONS BELOW ***
@@ -91,7 +105,7 @@
 (define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) NULL-FUNCTION))
 (define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
-(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
 
@@ -153,7 +167,7 @@
     (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                             (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
-                                                                         (place-image (create-gui-bottom) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                         (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                       (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))))
 
 
@@ -173,13 +187,13 @@
    (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue")))
 
 
-;; create-gui-bottom: null -> image
+;; create-gui-bottom: list-of-rules -> image
 ;; Purpose: Creates the bottom of the gui layout
-(define (create-gui-bottom)
+(define (create-gui-bottom lor)
   (overlay/align "left" "middle"
                  (align-items
                   (rules-bottom-label)
-                  (lor-bottom-label))
+                  (lor-bottom-label lor))
                  (rectangle WIDTH BOTTOM "outline" "transparent")))
 
 
@@ -206,13 +220,22 @@
    item1
    item2))
 
-;; lor-bottom-label: null -> image
+;; lor-bottom-label: list-of-rules -> image
 ;; Purpose: The label for the list of rules
-(define (lor-bottom-label)
-  (overlay
-   (text (string-upcase "List of rules will go here") 24 "Black")
-   (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")))
+(define (lor-bottom-label lor)
+  (letrec (
+           ;; list-to-string: list-of-rules -> list-of-strings
+           ;; Purpose: formates a list of rules to be displayed on the gui
+           (list-to-string (lambda (lor)
+                             (cond
+                               [(empty? lor) ""]
+                               [else (string-append (car lor) " , " (list-to-string (cdr lor)))])))
+           (text-str (list-to-string (reverse lor))))
+    (println SCALE)
+    (scale-text-to-image (text (substring text-str 0 (- (string-length text-str) 2)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") SCALE)))
 
+
+   
 ;; create-gui-left: null -> image
 ;; Purpose: creates the left conrol panel for the 
 (define (create-gui-left)
@@ -270,6 +293,15 @@
    (text (string-upcase msg) 18 "Black")
    (rectangle 200 25 "outline" "transparent")))
 
+
+;; scale-text-to-image image image integer (between 0 and 1) -> image
+;; Purpose: Scales the text of an image to not be larger then the image it is overlayed on
+(define (scale-text-to-image text img sc)
+  (let ((newScale (- sc .2)))
+    (cond
+      [(> (image-width text) (image-width img))
+       (scale-text-to-image (scale newScale text) img SCALE)]
+      [else (overlay (scale sc text) img)])))
 
 ;; process-mouse-event: world integer integer string --> world
 ;; Purpose: processes a users mouse event
