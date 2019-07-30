@@ -1,8 +1,8 @@
 #lang racket
 (require 2htdp/image 2htdp/universe "posn.rkt")
 
-;; ------- BUTTON -------
-;; This class holds the buttons functionality and structure
+;; ------- button.rkt -------
+;; This file contains the functionality and structure for buttons
 
 
 ;; Export necessary functions/structures
@@ -15,7 +15,7 @@
  set-inactive-button
  set-active-button)
 
-(define TINT-FACTOR .5) ;; The number to change a color
+(define TINT-FACTOR .5) ;; The number that determins the level of tint an active button will have
 
 
 ;; button: A structurre that represents a button

@@ -31,17 +31,17 @@
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
 
 ;; world: The world for the GUI
-;; - state-list:
+;; - state-list: A list of states that the machine has
 ;; - symbol-list:
 ;; - start-state:
 ;; - final-state-list:
-;; - rule-list:
+;; - rule-list: A list of rules that the machine must follow
 ;; - sigma-list:
 ;; - tape-position:
 ;; - cur-rule:
 ;; - cur-state:
-;; - button-list:
-;; - input-list:
+;; - button-list: A list containing all buttons to be rendered on the GUI
+;; - input-list: A list containing all the input-fields to be rendered on the GUI
 ;; - processed-config-list:
 ;; - unprocessed-config-list:
 (struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
@@ -179,7 +179,8 @@
                                                (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                             (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
                                                                          (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                      (draw-button-list (world-button-list w) (draw-input-list (world-input-list w) E-SCENE)))))))))
+                                                                                      (draw-button-list (world-button-list w)
+                                                                                                        (draw-input-list (world-input-list w) E-SCENE)))))))))
 
 
 ;; top-input-label: null -> image

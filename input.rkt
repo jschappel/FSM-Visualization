@@ -1,12 +1,11 @@
 #lang racket
-
 (require 2htdp/image 2htdp/universe "posn.rkt")
 
-
-;; ***** input.rkt *****
+;; ------- input.rkt -------
 ;; This file contains the functionality for an input field
 
 
+;; Export necessary functions/structures
 (provide
  (struct-out textbox)
  draw-textbox
