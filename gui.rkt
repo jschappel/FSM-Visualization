@@ -47,6 +47,8 @@
 ;; - unprocessed-config-list:
 (struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
 
+;; ***** BUTTON FUCTIONS BELOW *****
+
 ;; THIS FUNCTION IS JUST A PLACEHOLDER
 (define NULL-FUNCTION (lambda (w)
                         (world (cons (textbox-text (car (world-input-list w))) (world-state-list w)) (world-symbol-list w)
@@ -55,23 +57,30 @@
                                (world-cur-state w) (world-button-list w) (world-input-list w)
                                (world-processed-config-list w) (world-unporcessed-config-list w))))
 
-(define T1 (lambda (w)
-             (world (cons (textbox-text (car (world-input-list w))) (world-state-list w)) (world-symbol-list w)
-                    (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                    (world-cur-state w) (world-button-list w) (world-input-list w)
-                    (world-processed-config-list w) (world-unporcessed-config-list w))))
-(define T2 (lambda(w)
-             (world(remove (textbox-text (car (world-input-list w))) (world-state-list w))
-                   (world-symbol-list w)  (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                   (world-cur-state w) (world-button-list w) (world-input-list w)
-                   (world-processed-config-list w) (world-unporcessed-config-list w))))
+(define addState (lambda (w)
+                   (let ((state (textbox-text (car (world-input-list w))))
+                         (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
+                     
+                     (world (cons state (world-state-list w)) (world-symbol-list w)
+                            (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                            (world-cur-state w) (world-button-list w) new-input-list
+                            (world-processed-config-list w) (world-unporcessed-config-list w)))))
+
+(define removeState (lambda(w)
+                      (let ((state (textbox-text (car (world-input-list w))))
+                            (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
+                        
+                        (world(remove state (world-state-list w))
+                              (world-symbol-list w)  (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (world-cur-state w) (world-button-list w) new-input-list
+                              (world-processed-config-list w) (world-unporcessed-config-list w)))))
 
                   
 ;; **** BUTTONS BELOW ***
-(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) T1))
-(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) T2))
+(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
+(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) removeState))
 
 (define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 (define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) NULL-FUNCTION))
