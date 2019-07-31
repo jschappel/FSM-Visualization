@@ -115,24 +115,33 @@
 (define replaceStart(lambda(w)
                       (letrec
                           ((start-state (textbox-text(list-ref (world-input-list w) 2))))
-                        (cond[(not (null? (world-start-state w)))
-                              (world (cons start-state (world-state-list w)) (world-symbol-list w)
+                        (cond[(and (not (null? (world-start-state w))) (ormap (lambda (x) (equal? start-state x)) (world-state-list)))
+                              (world (world-state-list w) (world-symbol-list w)
                                      start-state (world-final-state-list w)  (world-rule-list w)
                                      (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                      (world-cur-state w) (world-button-list w) (world-input-list w)
                                      (world-processed-config-list w) (world-unporcessed-config-list w))]
-                             [else w]))))
+                             [else  (world (cons start-state (world-state-list w)) (world-symbol-list w)
+                                     start-state (world-final-state-list w)  (world-rule-list w)
+                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                     (world-cur-state w) (world-button-list w) (world-input-list w)
+                                     (world-processed-config-list w) (world-unporcessed-config-list w))]))))
 
 
 (define addEnd(lambda(w)
                   (letrec
                       ((end-state (textbox-text(list-ref (world-input-list w) 3))))
-                    
-                          (world (cons end-state (world-state-list w)) (world-symbol-list w)
+                    (cond[(ormap (lambda(x) (equal? x end-state)) (world-state-list w))
+                          (world (world-state-list w) (world-symbol-list w)
                                  (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                  (world-cur-state w) (world-button-list w) (world-input-list w)
-                                 (world-processed-config-list w) (world-unporcessed-config-list w)))))
+                                 (world-processed-config-list w) (world-unporcessed-config-list w))]
+                       [else   (world (cons end-state (world-state-list w)) (world-symbol-list w)
+                                 (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
+                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                 (world-cur-state w) (world-button-list w) (world-input-list w)
+                                 (world-processed-config-list w) (world-unporcessed-config-list w))]))))
                         
                           
                         
@@ -196,11 +205,11 @@
                                 [(empty? lob) scn]
                                 [else (draw-button (car lob) (draw-button-list (cdr lob) scn))])))
           (deg-shift (if (empty? (world-state-list w)) 0 (/ 360 (length (world-state-list w)))))
+          
           (get-x (lambda (theta rad) (truncate (+ (* rad (cos (degrees->radians theta))) X0))))
                 
           (get-y(lambda (theta rad)
                   (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
-          
           
           (draw-states
            (lambda (l i s)
