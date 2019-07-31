@@ -20,7 +20,7 @@
 ;; WORLD GLOBAL VARIABLES
 (define STATE-LIST '()) ;; The list of states for the machine 
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
-(define START-STATE null) ;; The starting state of the machine
+(define START-STATE null) ;; The starting state of the machinen
 (define FINAL-STATE-LIST '()) ;; The list of final states that the machine has
 (define RULE-LIST (list "(j j j)" "(i i i)" "(h h h)" "(g g g)"  "(f f f)" "(e e e)" "(d d d)" "(c c c)" "(b b b)" "(a a a)")) ;; The list of rules that the machine must follow
 (define SIGMA-LIST '()) ;; The list of sigma for the mahcine
@@ -89,19 +89,54 @@
 
 (define removeRule (lambda (w)
                      (let ((input-list (world-input-list w))
-                        (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
-                        (r2 (string-trim (textbox-text (list-ref (world-input-list w) 5))))
-                        (r3 (string-trim (textbox-text (list-ref (world-input-list w) 6))))
-                        (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
-                    (cond
-                     [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
-                     [else
-                       (world (world-state-list w) (world-symbol-list w)
-                              (world-start-state w) (world-final-state-list w) (remove (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
-                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                              (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                           (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
+                           (r2 (string-trim (textbox-text (list-ref (world-input-list w) 5))))
+                           (r3 (string-trim (textbox-text (list-ref (world-input-list w) 6))))
+                           (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
+                       (cond
+                         [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
+                         [else
+                          (world (world-state-list w) (world-symbol-list w)
+                                 (world-start-state w) (world-final-state-list w) (remove (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
+                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                 (world-cur-state w) (world-button-list w) new-input-list
+                                 (world-processed-config-list w) (world-unporcessed-config-list w))]))))
 
+(define addStart(lambda(w)
+                  (letrec
+                      ((start-state (textbox-text(list-ref (world-input-list w) 2))))
+                    (cond[(null? (world-start-state w))
+                          (world (cons start-state (world-state-list w)) (world-symbol-list w)
+                                 start-state (world-final-state-list w)  (world-rule-list w)
+                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                 (world-cur-state w) (world-button-list w) (world-input-list w)
+                                 (world-processed-config-list w) (world-unporcessed-config-list w))]
+                         [else w]))))
+(define replaceStart(lambda(w)
+                      (letrec
+                          ((start-state (textbox-text(list-ref (world-input-list w) 2))))
+                        (cond[(not (null? (world-start-state w)))
+                              (world (cons start-state (world-state-list w)) (world-symbol-list w)
+                                     start-state (world-final-state-list w)  (world-rule-list w)
+                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                     (world-cur-state w) (world-button-list w) (world-input-list w)
+                                     (world-processed-config-list w) (world-unporcessed-config-list w))]
+                             [else w]))))
+
+
+(define addEnd(lambda(w)
+                  (letrec
+                      ((end-state (textbox-text(list-ref (world-input-list w) 3))))
+                    
+                          (world (cons end-state (world-state-list w)) (world-symbol-list w)
+                                 (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
+                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                 (world-cur-state w) (world-button-list w) (world-input-list w)
+                                 (world-processed-config-list w) (world-unporcessed-config-list w)))))
+                        
+                          
+                        
+                        
 
 ;; **** BUTTONS BELOW ***
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
@@ -110,10 +145,10 @@
 (define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 (define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) NULL-FUNCTION))
 
-(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) NULL-FUNCTION))
-(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) addStart))
+(define BTN-REMOVE-START (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) replaceStart))
 
-(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) NULL-FUNCTION))
+(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) addEnd))
 (define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
 (define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
@@ -166,10 +201,25 @@
           (get-y(lambda (theta rad)
                   (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
           
+          
           (draw-states
            (lambda (l i s)
              (cond[(empty? l) s]
-                  [else (place-image (text  (car l) 25 "red")
+                  [(equal? (car l) (world-start-state w))  
+                   (place-image(overlay (text (car l) 25 "green")
+                                        (circle 25 "outline" "gray"))
+                               (get-x (* deg-shift i) R)
+                               (get-y (* deg-shift i) R)
+                               (draw-states(cdr l) (add1 i) s))]
+                  [(ormap (lambda(x) (equal? (car l) x)) (world-final-state-list w))
+                   (place-image(overlay (text (car l) 20 "red")
+                                        (overlay
+                                        (circle 20 "outline" "gray")
+                                        (circle 25 "outline" "gray")))
+                               (get-x (* deg-shift i) R)
+                               (get-y (* deg-shift i) R)
+                               (draw-states(cdr l) (add1 i) s))]
+                  [else (place-image (text  (car l) 25 "black")
                                      (get-x (* deg-shift i) R)
                                      (get-y (* deg-shift i) R)
                                      (draw-states (cdr l) (add1 i) s))]))))
