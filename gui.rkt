@@ -22,13 +22,14 @@
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
 (define START-STATE null) ;; The starting state of the machinen
 (define FINAL-STATE-LIST '()) ;; The list of final states that the machine has
-(define RULE-LIST (list "(j j j)" "(i i i)" "(h h h)" "(g g g)"  "(f f f)" "(e e e)" "(d d d)" "(c c c)" "(b b b)" "(a a a)")) ;; The list of rules that the machine must follow
+(define RULE-LIST '()) ;; The list of rules that the machine must follow
 (define SIGMA-LIST '()) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
 (define CURRENT-STATE null) ;; The current state that the machine is in
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
+(define ALPHA-LIST (list "a" "b" "c" "d")) ;; TODO
 
 ;; world: The world for the GUI
 ;; - state-list: A list of states that the machine has
@@ -44,8 +45,9 @@
 ;; - input-list: A list containing all the input-fields to be rendered on the GUI
 ;; - processed-config-list:
 ;; - unprocessed-config-list:
+;; - alpha-list: A list of the alphabet
 ;; - add stack list and stack alphabet
-(struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list) #:transparent)
+(struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list alpha-list) #:transparent)
 
 ;; ***** BUTTON FUCTIONS BELOW *****
 
@@ -58,11 +60,11 @@
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                      (cond[(ormap (lambda (x) (equal? state x)) (world-state-list w))
                            w]
-                        [else  (world (cons state (world-state-list w)) (world-symbol-list w)
-                                  (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                  (world-cur-state w) (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                          [else  (world (cons state (world-state-list w)) (world-symbol-list w)
+                                        (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                        (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                        (world-cur-state w) (world-button-list w) new-input-list
+                                        (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
 
 (define removeState (lambda(w)
                       (let ((state (string-trim (textbox-text (car (world-input-list w)))))
@@ -72,7 +74,7 @@
                               (world-symbol-list w)  (world-start-state w) (world-final-state-list w) (world-rule-list w)
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w)))))
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)))))
 
 (define addRule (lambda (w)
                   (let ((input-list (world-input-list w))
@@ -87,7 +89,7 @@
                               (world-start-state w) (world-final-state-list w) (cons (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
 
 (define removeRule (lambda (w)
                      (let ((input-list (world-input-list w))
@@ -102,32 +104,34 @@
                                  (world-start-state w) (world-final-state-list w) (remove (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                  (world-cur-state w) (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
 
 (define addStart(lambda(w)
                   (letrec
                       ((start-state (textbox-text(list-ref (world-input-list w) 2)))
-                        (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
+                       (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
                     
                     (cond[(and (null? (world-start-state w)) (ormap(lambda(x) (equal? start-state x)) (world-state-list w)))
                           (world (world-state-list w) (world-symbol-list w)
                                  start-state (world-final-state-list w)  (world-rule-list w)
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                  start-state (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w))]
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                          [ (null? (world-start-state w))
                            (world (cons start-state (world-state-list w)) (world-symbol-list w)
-                                 start-state (world-final-state-list w)  (world-rule-list w)
-                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                 start-state (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w))]
+                                  start-state (world-final-state-list w)  (world-rule-list w)
+                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                  start-state (world-button-list w) new-input-list
+                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                          [ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
                            (world (world-state-list w) (world-symbol-list w)
                                   start-state (world-final-state-list w)  (world-rule-list w)
                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                   start-state (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w))]
+                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                          [else w]))))
+
+
 (define replaceStart(lambda(w)
                       (letrec
                           ((start-state (textbox-text(list-ref (world-input-list w) 2)))
@@ -137,12 +141,12 @@
                                       start-state (world-final-state-list w)  (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       start-state (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w))]
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                              [else  (world (cons start-state (world-state-list w)) (world-symbol-list w)
                                            start-state (world-final-state-list w)  (world-rule-list w)
                                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                            start-state (world-button-list w) new-input-list
-                                           (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                                           (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
 
 
 (define addEnd(lambda(w)
@@ -154,12 +158,25 @@
                                (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w))]
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                        [else   (world (cons end-state (world-state-list w)) (world-symbol-list w)
                                       (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       (world-cur-state w) (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w))]))))
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+
+(define addAlpha (lambda (w)
+                   (let ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 1))))
+                    (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 3) 100))))
+
+                   (cond
+                     [(equal? input-value "") (redraw-world w)]
+                     [else
+                      (world (world-state-list w) (world-symbol-list w)
+                                 (world-start-state w) (world-final-state-list w)  (world-rule-list w)
+                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                 (world-cur-state w) (world-button-list w) new-input-list
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (cons input-value (world-alpha-list w)))]))))
                         
                           
                         
@@ -212,7 +229,7 @@
 
 ;; Initialize the world
 (define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
-                          CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST))
+                          CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST ALPHA-LIST))
 
 (define (draw-world w)
   (letrec((draw-input-list (lambda (loi scn)
@@ -229,7 +246,7 @@
                 
           (get-y(lambda (theta rad)
                   (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
-         (current-index (if (null? (world-cur-state w)) 0 (index-of (world-state-list w) (world-cur-state w))))
+          (current-index (if (null? (world-cur-state w)) 0 (index-of (world-state-list w) (world-cur-state w))))
           (tip-x (get-x (* deg-shift current-index) inner-R))
           (tip-y(get-y (* deg-shift current-index) inner-R))
           (the-arrow (triangle 20 "solid" "tan"))
@@ -256,19 +273,19 @@
                                      (draw-states (cdr l) (add1 i) s))]))))
           
     
-   (if (not (null? (world-cur-state w)))
-             (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
-                                               (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                            (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
-                                                                         (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                      (draw-button-list (world-button-list w)
-                                                                                                        (draw-input-list (world-input-list w) (place-image (create-gui-alpha ) (/ (/ WIDTH 11) 2) (/ HEIGHT 2) E-SCENE)))))))) X0 Y0 tip-x tip-y "black"))
-             (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
-                                               (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                            (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
-                                                                         (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                      (draw-button-list (world-button-list w)
-                                                                                                        (draw-input-list (world-input-list w) (place-image (create-gui-alpha )  (/ (/ WIDTH 11) 2) (/ HEIGHT 2) E-SCENE)))))))))))
+    (if (not (null? (world-cur-state w)))
+        (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
+                                                                                                                                     (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                                                                                                  (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                                                               (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                                                                            (draw-button-list (world-button-list w)
+                                                                                                                                                                                              (draw-input-list (world-input-list w) (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) E-SCENE)))))))) X0 Y0 tip-x tip-y "black"))
+        (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
+                                                   (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                                                                             (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                          (draw-button-list (world-button-list w)
+                                                                                                            (draw-input-list (world-input-list w) (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) E-SCENE)))))))))))
 
 
 ;; top-input-label: null -> image
@@ -330,8 +347,13 @@
                              (cond
                                [(empty? lor) ""]
                                [else (string-append (car lor) " , " (list-to-string (cdr lor)))])))
-           (text-str (list-to-string (reverse lor))))
-    (scale-text-to-image (text (substring text-str 0 (- (string-length text-str) 2)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)))
+           (text-str (list-to-string (reverse lor)))
+           (text-to-render (lambda (txt)
+                             (cond
+                               [(< (string-length txt) 3) ""]
+                               [else (substring txt 0 (- (string-length txt) 2))])))
+           )
+    (scale-text-to-image (text (text-to-render text-str) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)))
 
 
    
@@ -347,16 +369,50 @@
                               (rule-left-control))
                  (rectangle 200 HEIGHT "outline" "gray")))
 
-;;create-gui-alpha list of alpha -> image
-(define (create-gui-alpha)
-  (rectangle (/ WIDTH 11) HEIGHT "outline" "blue"))
+;;create-gui-alpha: list of alpha -> image
+(define (create-gui-alpha loa)
+  (overlay/align "left" "bottom"
+                 (rectangle (/ WIDTH 11) (- HEIGHT BOTTOM) "outline" "blue")
+                 (create-alpha-control loa)))
+
+;;create-alpha-control: list of alpha -> image
+(define (create-alpha-control loa)
+  (overlay/align "right" "top"
+                 (control-header2 "Alpha List")
+                 (overlay/align "right" "bottom"
+                                ;;(rectangle (/ WIDTH 11) (- (/ HEIGHT 2) 70) "outline" "red")
+                                (draw-alpha2 loa)
+                                (rectangle (/ WIDTH 11) (- (/ HEIGHT 2) 30) "outline" "blue"))))
+
+;; draw-alpha: list-of-alpha string => stirng
+;; Prupose: given a list of alpha will convert to a string with each item in the list on a seprete line
+(define (draw-alpha loa accum)
+  (cond
+    [(empty? loa) (format accum)]
+    [else (draw-alpha (cdr loa) (string-append accum (string-append (car loa) "\n")))]))
+
+(define (draw-alpha2 loa)
+  (cond
+    [(<= (length loa) 1) (t-box (car loa))]
+    [else (above
+                         (t-box (car loa))
+                         (draw-alpha2 (cdr loa)))]))
+
+
+(define (t-box a-string)
+  (overlay
+   (text a-string 18 "Black")
+   (rectangle (/ WIDTH 11) 20 "outline" "green")))
+
+
+  
 
 ;; state-left-control: null -> image
 ;; Purpose: Creates the state control panel
 (define (state-left-control)
   (overlay/align "left" "top"
-                 (rectangle 200 CONTROL-BOX-H "outline" "blue")
-                 (control-header "State Options")))
+                 (control-header "State Options")
+                 (rectangle 200 CONTROL-BOX-H "outline" "blue")))
 
                  
 ;; alpha-left-control: null -> image
@@ -393,8 +449,15 @@
 ;; Purpose: Creates a header label for right control panel
 (define (control-header msg)
   (overlay
-   (text (string-upcase msg) 18 "Black")
+   (text (string-upcase msg) 14 "Black")
    (rectangle 200 25 "outline" "transparent")))
+
+;; control-header2: string -> image
+;; Purpose: Creates a header label for right control panel
+(define (control-header2 msg)
+  (overlay
+   (text (string-upcase msg) 18 "Black")
+   (rectangle (/ WIDTH 11) 40 "outline" "transparent")))
 
 
 ;; scale-text-to-image image image integer (between 0 and 1) -> image
@@ -478,21 +541,21 @@
 (define (create-new-world-input a-world loi)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+         loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world)))
 
 ;; create-new-world-button: world list-of-button-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-button-fields changes
 (define (create-new-world-button a-world lob)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) lob
-         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world)))
 
 ;; redraw-world: world -> world
 ;; redraws the same world as before
 (define (redraw-world a-world)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST))
+         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world)))
   
 
 (big-bang
