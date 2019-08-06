@@ -29,7 +29,7 @@
 (define CURRENT-STATE null) ;; The current state that the machine is in
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
-(define ALPHA-LIST (list "a" "b" "c" "d")) ;; TODO
+(define ALPHA-LIST '()) ;; TODO
 
 ;; world: The world for the GUI
 ;; - state-list: A list of states that the machine has
@@ -167,16 +167,29 @@
 
 (define addAlpha (lambda (w)
                    (let ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 1))))
-                    (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 3) 100))))
+                         (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 1) 100))))
 
-                   (cond
-                     [(equal? input-value "") (redraw-world w)]
-                     [else
-                      (world (world-state-list w) (world-symbol-list w)
-                                 (world-start-state w) (world-final-state-list w)  (world-rule-list w)
-                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                 (world-cur-state w) (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (cons input-value (world-alpha-list w)))]))))
+                     (cond
+                       [(equal? input-value "") (redraw-world w)]
+                       [else
+                        (world (world-state-list w) (world-symbol-list w)
+                               (world-start-state w) (world-final-state-list w)  (world-rule-list w)
+                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                               (world-cur-state w) (world-button-list w) new-input-list
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove-duplicates (cons input-value (world-alpha-list w))) string<?))]))))
+
+(define rmvAlpha (lambda (w)
+                   (let ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 1))))
+                         (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 1) 100))))
+                     (cond
+                       [(equal? input-value "") (redraw-world w)]
+                       [else
+                        (world (world-state-list w) (world-symbol-list w)
+                               (world-start-state w) (world-final-state-list w)  (world-rule-list w)
+                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                               (world-cur-state w) (world-button-list w) new-input-list
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove input-value (world-alpha-list w)) string<?))]))))
+                     
                         
                           
                         
@@ -186,8 +199,8 @@
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
 (define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) removeState))
 
-(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) NULL-FUNCTION))
-(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) NULL-FUNCTION))
+(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) addAlpha))
+(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) rmvAlpha))
 
 (define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) addStart))
 (define BTN-REMOVE-START (button 50 25 "Replace" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) replaceStart))
@@ -377,31 +390,30 @@
 ;;create-alpha-control: list of alpha -> image
 (define (create-alpha-control loa)
   (overlay/align "right" "top"
-                 (control-header2 "Alpha List")
-                 (overlay/align "right" "bottom"
-                                ;;(rectangle (/ WIDTH 11) (- (/ HEIGHT 2) 70) "outline" "red")
-                                (draw-alpha2 loa)
-                                (rectangle (/ WIDTH 11) (- (/ HEIGHT 2) 30) "outline" "blue"))))
+                 (rectangle (/ WIDTH 11) (- (/ HEIGHT 2) 30) "outline" "blue")
+                 (above
+                  (control-header2 "Alpha List")
+                  (draw-alpha loa 14) 
+                  )))
+                
 
-;; draw-alpha: list-of-alpha string => stirng
-;; Prupose: given a list of alpha will convert to a string with each item in the list on a seprete line
-(define (draw-alpha loa accum)
-  (cond
-    [(empty? loa) (format accum)]
-    [else (draw-alpha (cdr loa) (string-append accum (string-append (car loa) "\n")))]))
-
-(define (draw-alpha2 loa)
-  (cond
-    [(<= (length loa) 1) (t-box (car loa))]
-    [else (above
-                         (t-box (car loa))
-                         (draw-alpha2 (cdr loa)))]))
-
-
-(define (t-box a-string)
-  (overlay
-   (text a-string 18 "Black")
-   (rectangle (/ WIDTH 11) 20 "outline" "green")))
+;; draw-alpha: list-of-alpha string int -> image
+;; Purpose: draws the alphabet image with every letter on another line
+(define (draw-alpha loa fnt-size)
+  (letrec (
+           ;; t-box: string int -> image
+           ;; Purpose: Creates a box for the sting to be placed in
+           (t-box (lambda (a-string fnt-size)
+                    (overlay
+                     (text a-string fnt-size "Black")
+                     (rectangle (/ WIDTH 11) fnt-size "outline" "transparent")))))
+    
+    (cond
+      [(empty? loa) (rectangle 10 10 "outline" "transparent")]
+      [(<= (length loa) 1) (t-box (car loa) fnt-size)]
+      [else (above
+             (t-box (car loa) fnt-size)
+             (draw-alpha (cdr loa) fnt-size))])))
 
 
   
@@ -455,7 +467,7 @@
 ;; Purpose: Creates a header label for right control panel
 (define (control-header2 msg)
   (overlay
-   (text (string-upcase msg) 18 "Black")
+   (text (string-upcase msg) 14 "Black")
    (rectangle (/ WIDTH 11) 40 "outline" "transparent")))
 
 
