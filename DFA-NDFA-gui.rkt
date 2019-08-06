@@ -192,11 +192,37 @@
 
 (define addSigma (lambda (w)
                    (letrec ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 7))))
+                            (list-of-inputs (if (> (string-length input-value) 1) (string-split input-value "") input-value))
+                            (list-to-string (lambda (lor)
+                             (cond
+                               [(empty? lor) ""]
+                               [else (string-append (car lor) " " (list-to-string (cdr lor)))])))
+                         (sigmas-exist? (lambda (a s)
+                          (if(empty? (world-sigma-list w)) #f
+                              (check-alpha a s))))
+                         ;; Purpose: Determins if all elements of sigma are in alpha. If they are then returns true, otherwise retunrs false
+                         (check-alpha (lambda (loa los)
+                                        (begin
+                                          (display "hello")
+                                        (cond
+                                         
+                                          [(empty? (member (car los) loa)) #f]
+                                          [(empty? los) #t]
+                                         
+                                          [else (check-alpha loa (cdr los))]))))
                          (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
+                     
 
              
                      (cond
+                       [(not (sigmas-exist? (world-alpha-list w) list-of-inputs)) (redraw-world w)]
                        [(equal? input-value "") (redraw-world w)]
+                       [(> (string-length input-value) 1)
+                         (world (world-state-list w) (world-symbol-list w)
+                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                               (cons (string-trim (list-to-string list-of-inputs)) (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
+                               (world-cur-state w) (world-button-list w) new-input-list
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                        [else 
                         (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (world-final-state-list w) (world-rule-list w)
