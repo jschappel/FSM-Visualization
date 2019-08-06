@@ -214,14 +214,13 @@
 
 
 ;; **** INPUT FIELDS BELOW ****
-;;;DS CAN EXIST AND RESTRICTING TO ONE CHAR FOR RULES IS TOUGH
 (define IPF-STATE (textbox 150 25 (make-color 110 162 245) (make-color 110 162 245) "" 5 (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
 (define IPF-ALPHA (textbox 150 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
 (define IPF-START (textbox 75 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
 (define IPF-END (textbox 75 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 150) (- (* 4 CONTROL-BOX-H) 50)) #f))
-(define IPF-RULE1 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 1 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-RULE2 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 1 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-RULE3 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 1 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE1 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE2 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE3 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
 
 ;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3))
