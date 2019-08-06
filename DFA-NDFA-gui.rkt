@@ -189,8 +189,28 @@
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
                                (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove input-value (world-alpha-list w)) string<?))]))))
+
+(define addSigma (lambda (w)
+                   (letrec ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 7))))
+                         (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
+
+             
+                     (cond
+                       [(equal? input-value "") (redraw-world w)]
+                       [else 
+                        (world (world-state-list w) (world-symbol-list w)
+                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                               (cons input-value (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
+                               (world-cur-state w) (world-button-list w) new-input-list
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
                      
-                        
+(define clearSigma (lambda (w)
+                     (let ((new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              '() (world-tape-position w) (world-cur-rule w)
+                              (world-cur-state w) (world-button-list w) new-input-list
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)))))                       
                           
                         
                         
@@ -212,9 +232,12 @@
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
 
 
-(define BTN-NEXT (button 95 50 "NEXT" "solid" (make-color 230 142 174) (make-color 230 142 174) 35 #f #f (posn 55 100) NULL-FUNCTION))
-(define BTN-PREV (button 95 50 "PREV" "solid" (make-color 230 142 174) (make-color 230 142 174) 35 #f #f (posn 55 160) NULL-FUNCTION))
-(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 230 142 174) (make-color 230 142 174) 35 #f #f (posn 55 220) NULL-FUNCTION))
+(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) NULL-FUNCTION))
+(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) NULL-FUNCTION))
+(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) NULL-FUNCTION))
+
+(define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" (make-color 230 142 174) (make-color 230 142 174) 25 #f #f (posn 55 70) addSigma))
+(define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" (make-color 230 142 174) (make-color 230 142 174) 25 #f #f (posn 55 100) NULL-FUNCTION))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
@@ -222,7 +245,8 @@
                           BTN-ADD-START BTN-REMOVE-START
                           BTN-ADD-END BTN-REMOVE-END
                           BTN-ADD-RULES BTN-REMOVE-RULES
-                          BTN-RUN BTN-NEXT BTN-PREV))
+                          BTN-RUN BTN-NEXT BTN-PREV
+                          BTN-SIGMA-ADD BTN-SIGMA-CLEAR))
 
 
 
@@ -234,9 +258,10 @@
 (define IPF-RULE1 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
 (define IPF-RULE2 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
 (define IPF-RULE3 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-SIGMA (textbox 90 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (/ (/ WIDTH 11) 2) 40) #f))
 
 ;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
-(define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3))
+(define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
 
 
 ;; Initialize the world
@@ -288,13 +313,13 @@
     (if (not (null? (world-cur-state w)))
         (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                                                                                                      (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                                                                  (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                                                  (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
                                                                                                                                                                (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                             (draw-button-list (world-button-list w)
                                                                                                                                                                                               (draw-input-list (world-input-list w) (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) E-SCENE)))))))) X0 Y0 tip-x tip-y "black"))
         (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                    (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                (place-image (create-gui-top) (/ WIDTH 2) (/ TOP 2)
+                                                                (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
                                                                              (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                           (draw-button-list (world-button-list w)
                                                                                                             (draw-input-list (world-input-list w) (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) E-SCENE)))))))))))
@@ -303,17 +328,19 @@
 ;; top-input-label: null -> image
 ;; Purpose: Creates the top left input lable
 (define (top-input-label)
-  (overlay
-   (text (string-upcase "Input") 24 "Black")
-   (rectangle (/ WIDTH 11) TOP "outline" "blue")))
+  (overlay/align "right" "top"
+                 (control-header3 "Tape Input")
+                 (rectangle (/ WIDTH 11) TOP "outline" "transparent")))
 
 
 ;; los-top-label: null -> Image
 ;; Purpose: Creates the top list of sigmas lable
-(define (los-top-label)
-  (overlay
-   (text (string-upcase "List of sigmas goes here") 24 "Black")
-   (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue")))
+(define (los-top-label los)
+  (letrec ((list-to-string (lambda (lor)
+                             (cond
+                               [(empty? lor) ""]
+                               [else (string-append (car lor) " " (list-to-string (cdr lor)))]))))
+    (scale-text-to-image (text (list-to-string (reverse los)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
 
 
 ;; create-gui-bottom: list-of-rules -> image
@@ -330,16 +357,16 @@
 ;; Purpose: Creates the left bottom label in the gui
 (define (rules-bottom-label)
   (overlay
-   (text (string-upcase "Rules") 24 "Black")
+   (text (string-upcase "Rules:") 24 "Black")
    (rectangle (/ WIDTH 11) BOTTOM "outline" "blue")))
 
 ; create-gui-top: null -> image
 ;; Creates the top of the gui layout
-(define (create-gui-top)
+(define (create-gui-top los)
   (overlay/align "left" "middle"
-                 (align-items
+                 (beside
                   (top-input-label)
-                  (los-top-label))
+                  (los-top-label los))
                  (rectangle WIDTH TOP "outline" "transparent")))
 
 ;; align-items image image -> image
@@ -463,12 +490,19 @@
    (text (string-upcase msg) 14 "Black")
    (rectangle 200 25 "outline" "transparent")))
 
+
 ;; control-header2: string -> image
 ;; Purpose: Creates a header label for right control panel
 (define (control-header2 msg)
   (overlay
    (text (string-upcase msg) 14 "Black")
    (rectangle (/ WIDTH 11) 40 "outline" "transparent")))
+
+
+(define (control-header3 msg)
+  (overlay
+   (text (string-upcase msg) 14 "Black")
+   (rectangle (/ WIDTH 11) 25 "outline" "transparent")))
 
 
 ;; scale-text-to-image image image integer (between 0 and 1) -> image
@@ -541,7 +575,7 @@
                              [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
     (cond
-      [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z") (string<=? "1" (string-downcase k) "9")) (not (equal? k "shift")))
+      [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z") (string<=? "1" (string-downcase k) "9")) (and (not (equal? k "shift")) (not (equal? k "rshift"))))
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
