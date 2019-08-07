@@ -32,10 +32,11 @@
 (define ALPHA-LIST '()) ;; TODO
 
 ;; COLORS FOR GUI
-;;(make-color 230 142 174)old button color
-;; (make-color 110 162 245) old input color
 (define CONTROLLER-BUTTON-COLOR (make-color 48 63 159))
 (define INPUT-COLOR (make-color 255 193 7))
+(define START-STATE-COLOR (make-color 6 142 60))
+(define END-STATE-COLOR (make-color 219 9 9))
+
 
 
 ;; world: The world for the GUI
@@ -61,7 +62,8 @@
 ;; THIS FUNCTION IS JUST A PLACEHOLDER
 (define NULL-FUNCTION (lambda (w)
                         (redraw-world w)))
-
+;; addState: world -> world
+;; Purpose: Adds a state to the world
 (define addState (lambda (w)
                    (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
@@ -273,7 +275,7 @@
 (define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) NULL-FUNCTION))
 
 (define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 70) addSigma))
-(define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 100) NULL-FUNCTION))
+(define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 100) clearSigma))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
@@ -327,16 +329,16 @@
            (lambda (l i s)
              (cond[(empty? l) s]
                   [(equal? (car l) (world-start-state w))  
-                   (place-image(overlay (text (car l) 25 "green")
-                                        (circle 25 "outline" "green"))
+                   (place-image(overlay (text (car l) 25 START-STATE-COLOR)
+                                        (circle 25 "outline" START-STATE-COLOR))
                                (get-x (* deg-shift i) R)
                                (get-y (* deg-shift i) R)
                                (draw-states(cdr l) (add1 i) s))]
                   [(ormap (lambda(x) (equal? (car l) x)) (world-final-state-list w))
                    (place-image(overlay (text (car l) 20 "red")
                                         (overlay
-                                         (circle 20 "outline" "black")
-                                         (circle 25 "outline" "red")))
+                                         (circle 20 "outline" END-STATE-COLOR)
+                                         (circle 25 "outline" END-STATE-COLOR)))
                                (get-x (* deg-shift i) R)
                                (get-y (* deg-shift i) R)
                                (draw-states(cdr l) (add1 i) s))]
