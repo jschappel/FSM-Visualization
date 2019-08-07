@@ -222,7 +222,6 @@
                             (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))) 
                             (sigma-list (real-string->list input-value)))
                      
-                     (println sigma-list)
                      (cond
                        [(equal? (check-alpha (world-alpha-list w) sigma-list) #f) (redraw-world w)]
                        [(equal? input-value "") (redraw-world w)]
