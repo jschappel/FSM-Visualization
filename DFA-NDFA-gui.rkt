@@ -192,41 +192,50 @@
 
 (define addSigma (lambda (w)
                    (letrec ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 7))))
-                            (list-of-inputs (if (> (string-length input-value) 1) (string-split input-value "") input-value))
-                            (list-to-string (lambda (lor)
-                             (cond
-                               [(empty? lor) ""]
-                               [else (string-append (car lor) " " (list-to-string (cdr lor)))])))
-                         (sigmas-exist? (lambda (a s)
-                          (if(empty? (world-sigma-list w)) #f
-                              (check-alpha a s))))
-                         ;; Purpose: Determins if all elements of sigma are in alpha. If they are then returns true, otherwise retunrs false
-                         (check-alpha (lambda (loa los)
-                                        (begin
-                                          (display "hello")
-                                        (cond
-                                         
-                                          [(empty? (member (car los) loa)) #f]
-                                          [(empty? los) #t]
-                                         
-                                          [else (check-alpha loa (cdr los))]))))
-                         (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
-                     
 
-             
+                            ;; real-string->list: string -> list
+                            ;; Purpose: converts a string to a list. Unlike Racket's string->list, this function converts every element of the
+                            ;; list to a string as opposed to a char.
+                            (real-string->list (lambda (str)
+                                                 (letrec (;; convert-to-list: string list -> list
+                                                          ;; Purpose: this function uses an accumulator to accumulate all elements of the string converted to a list  
+                                                          (convert-to-list (lambda (str accum) 
+                                                                             (cond
+                                                                               [(< (string-length str) 1) (reverse accum)]
+                                                                               [else (convert-to-list (substring str 1) (cons (substring str 0 1) accum))]))))
+                                                   (convert-to-list str '()))))
+
+                            ;; check-alpha: list-of-alpha list-of-sigma -> boolean
+                            ;; Purpose: Determins if all elements of sigma are in alpha. If they are then returns true, otherwise retunrs false
+                            (check-alpha (lambda (loa los)
+                                           (letrec (;; check-lists: list list -> boolean
+                                                    ;; Purpose: given two list will check to see if the elements of list2 are in list1
+                                                    (check-lists (lambda (list1 list2)
+                                                                   (cond
+                                                                     [(empty? list2) #t]
+                                                                     [(equal? (member (car list2) list1) #f) #f]
+                                                                     [else (check-lists list1 (cdr list2))]))))
+                                             (cond
+                                               [(empty? loa) #f]
+                                               [(empty? los) #f]
+                                               [else (check-lists loa los)]))))
+                            (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))) 
+                            (sigma-list (real-string->list input-value)))
+                     
+                     (println sigma-list)
                      (cond
-                       [(not (sigmas-exist? (world-alpha-list w) list-of-inputs)) (redraw-world w)]
+                       [(equal? (check-alpha (world-alpha-list w) sigma-list) #f) (redraw-world w)]
                        [(equal? input-value "") (redraw-world w)]
                        [(> (string-length input-value) 1)
-                         (world (world-state-list w) (world-symbol-list w)
+                        (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                               (cons (string-trim (list-to-string list-of-inputs)) (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
+                               (append sigma-list (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
                        [else 
                         (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                               (cons input-value (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
+                               (append sigma-list (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
                      
