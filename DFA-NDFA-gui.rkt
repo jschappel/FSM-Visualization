@@ -208,7 +208,7 @@
                                                           ;; Purpose: this function uses an accumulator to accumulate all elements of the string converted to a list  
                                                           (convert-to-list (lambda (str accum) 
                                                                              (cond
-                                                                               [(< (string-length str) 1) (reverse accum)]
+                                                                               [(< (string-length str) 1) accum]
                                                                                [else (convert-to-list (substring str 1) (cons (substring str 0 1) accum))]))))
                                                    (convert-to-list str '()))))
 
@@ -232,18 +232,13 @@
                      (cond
                        [(equal? (check-alpha (world-alpha-list w) sigma-list) #f) (redraw-world w)]
                        [(equal? input-value "") (redraw-world w)]
-                       [(> (string-length input-value) 1)
+                       [(> (string-length input-value) 0)
                         (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                (append sigma-list (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
-                       [else 
-                        (world (world-state-list w) (world-symbol-list w)
-                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                               (append sigma-list (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
-                               (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+                       [else (redraw-world w)]))))
                      
 (define clearSigma (lambda (w)
                      (let ((new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
