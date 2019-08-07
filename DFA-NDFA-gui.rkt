@@ -34,8 +34,8 @@
 ;; COLORS FOR GUI
 ;;(make-color 230 142 174)old button color
 ;; (make-color 110 162 245) old input color
-(define CONTROLLER-BUTTON-COLOR (make-color 68 138 255))
-(define INPUT-COLOR (make-color 189 189 189))
+(define CONTROLLER-BUTTON-COLOR (make-color 48 63 159))
+(define INPUT-COLOR (make-color 255 193 7))
 
 
 ;; world: The world for the GUI
