@@ -16,6 +16,7 @@
  set-active-button)
 
 (define TINT-FACTOR .5) ;; The number that determins the level of tint an active button will have
+(define TEXT-COLOR (make-color 255 255 255)) ;; Color of button text
 
 
 ;; button: A structurre that represents a button
@@ -42,10 +43,10 @@
 ;; Purpose: creates an image that represents the button and then returns it
 (define (create-button btn)
   (cond
-    [(button-rounded? btn) (overlay (text (string-upcase (button-text btn)) (button-fontSize btn) "black")
+    [(button-rounded? btn) (overlay (text (string-upcase (button-text btn)) (button-fontSize btn) TEXT-COLOR)
                                     (ellipse (button-width btn) (button-height btn) (button-type btn) (button-color btn)))]
     [else 
-     (overlay (scale .5 (text (string-upcase (button-text btn)) (button-fontSize btn) "black"))
+     (overlay (scale .5 (text (string-upcase (button-text btn)) (button-fontSize btn) TEXT-COLOR))
               (rectangle (button-width btn) (button-height btn) (button-type btn) (button-color btn)))]))
 
 ;; button-pressed? x y -> boolean

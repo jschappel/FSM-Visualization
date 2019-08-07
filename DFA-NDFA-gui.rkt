@@ -31,6 +31,13 @@
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
 (define ALPHA-LIST '()) ;; TODO
 
+;; COLORS FOR GUI
+;;(make-color 230 142 174)old button color
+;; (make-color 110 162 245) old input color
+(define CONTROLLER-BUTTON-COLOR (make-color 68 138 255))
+(define INPUT-COLOR (make-color 189 189 189))
+
+
 ;; world: The world for the GUI
 ;; - state-list: A list of states that the machine has
 ;; - symbol-list:
@@ -250,28 +257,28 @@
                         
 
 ;; **** BUTTONS BELOW ***
-(define BTN-ADD-STATE (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
-(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) removeState))
+(define BTN-ADD-STATE (button 70 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
+(define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) removeState))
 
-(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) addAlpha))
-(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) rmvAlpha))
+(define BTN-ADD-ALPHA (button 70 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 150) (- (* 2 CONTROL-BOX-H) 25)) addAlpha))
+(define BTN-REMOVE-ALPHA (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- (* 2 CONTROL-BOX-H ) 25)) rmvAlpha))
 
-(define BTN-ADD-START (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) addStart))
-(define BTN-REMOVE-START (button 50 25 "Replace" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) replaceStart))
+(define BTN-ADD-START (button 50 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 71)) addStart))
+(define BTN-REMOVE-START (button 50 25 "Replace" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) replaceStart))
 
-(define BTN-ADD-END (button 50 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) addEnd))
-(define BTN-REMOVE-END (button 50 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-ADD-END (button 50 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) addEnd))
+(define BTN-REMOVE-END (button 50 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
 
-(define BTN-ADD-RULES (button 70 25 "Add" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
-(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" (make-color 230 142 174) (make-color 230 142 174) 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
+(define BTN-ADD-RULES (button 70 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
+(define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
 
 
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) NULL-FUNCTION))
 (define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) NULL-FUNCTION))
 (define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) NULL-FUNCTION))
 
-(define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" (make-color 230 142 174) (make-color 230 142 174) 25 #f #f (posn 55 70) addSigma))
-(define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" (make-color 230 142 174) (make-color 230 142 174) 25 #f #f (posn 55 100) NULL-FUNCTION))
+(define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 70) addSigma))
+(define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 100) NULL-FUNCTION))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
@@ -285,14 +292,14 @@
 
 
 ;; **** INPUT FIELDS BELOW ****
-(define IPF-STATE (textbox 150 25 (make-color 110 162 245) (make-color 110 162 245) "" 5 (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
-(define IPF-ALPHA (textbox 150 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
-(define IPF-START (textbox 75 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
-(define IPF-END (textbox 75 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (- WIDTH 150) (- (* 4 CONTROL-BOX-H) 50)) #f))
-(define IPF-RULE1 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-RULE2 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-RULE3 (textbox 40 25 (make-color 110 162 245) (make-color 110 162 245) "" 4 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-SIGMA (textbox 90 25 (make-color 110 162 245) (make-color 110 162 245) "" 10 (posn (/ (/ WIDTH 11) 2) 40) #f))
+(define IPF-STATE (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 5 (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
+(define IPF-ALPHA (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
+(define IPF-START (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
+(define IPF-END (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 150) (- (* 4 CONTROL-BOX-H) 50)) #f))
+(define IPF-RULE1 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE2 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-RULE3 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
+(define IPF-SIGMA (textbox 90 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (/ (/ WIDTH 11) 2) 40) #f))
 
 ;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
