@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe "button.rkt" "posn.rkt" "input.rkt")
+(require 2htdp/image 2htdp/universe "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -302,6 +302,10 @@
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
 
 
+;; MESG WIDOW
+(define TEST-WINDOW (msgWindow "Hello World! This is a string that is super long and will need a funtion to render it on multipul lines" #f (posn (/ WIDTH 2) (/ HEIGHT 2))))
+
+
 ;; Initialize the world
 (define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
                           CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST ALPHA-LIST))
@@ -360,7 +364,11 @@
                                                                 (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
                                                                              (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                           (draw-button-list (world-button-list w)
-                                                                                                            (draw-input-list (world-input-list w) (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) E-SCENE)))))))))))
+                                                                                                            (draw-input-list (world-input-list w)
+                                                                                                                             (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2)
+                                                                                                                                          ;;(draw-window TEST-WINDOW E-SCENE)
+                                                                                                                                          E-SCENE
+                                                                                                                                          )))))))))))
 
 
 ;; top-input-label: null -> image
@@ -586,9 +594,13 @@
                                [(empty? lob) '()]
                                [(button-pressed? x y (car lob)) (cons (set-active-button (car lob)) (active-button-list (cdr lob) x y))]
                                [else (cons (car lob) (active-button-list (cdr lob) x y))]))))
+
+   
     
     (cond
       [(string=? me "button-down")
+       ;;(begin
+         ;;(println (exit-pressed? x y TEST-WINDOW WIDTH HEIGHT)))
        (define buttonPressed (check-button-list (world-button-list w) x y))
        (cond
          [(not (null? buttonPressed)) (run-function buttonPressed (create-new-world-button w (active-button-list (world-button-list w) x y)))]
