@@ -54,14 +54,16 @@
 ;; - processed-config-list:
 ;; - unprocessed-config-list:
 ;; - alpha-list: A list of the alphabet
+;; - error msg: A msgWindow structure that will be rendered on the screen if not null.
 ;; - add stack list and stack alphabet
-(struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list alpha-list) #:transparent)
+(struct world (state-list symbol-list start-state final-state-list rule-list sigma-list tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list alpha-list error-msg) #:transparent)
 
 ;; ***** BUTTON FUCTIONS BELOW *****
 
 ;; THIS FUNCTION IS JUST A PLACEHOLDER
 (define NULL-FUNCTION (lambda (w)
                         (redraw-world w)))
+
 ;; addState: world -> world
 ;; Purpose: Adds a state to the world
 (define addState (lambda (w)
@@ -73,8 +75,10 @@
                                         (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                         (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                         (world-cur-state w) (world-button-list w) new-input-list
-                                        (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+                                        (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
+;; removeState: world -> world
+;; Purpose: Removes a state from the world
 (define removeState (lambda(w)
                       (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                             (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
@@ -83,8 +87,10 @@
                               (world-symbol-list w)  (world-start-state w) (world-final-state-list w) (world-rule-list w)
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)))))
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w)))))
 
+;; addRule: world -> world
+;; Purpose: Addes a rule to the world rule list
 (define addRule (lambda (w)
                   (let ((input-list (world-input-list w))
                         (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
@@ -98,8 +104,10 @@
                               (world-start-state w) (world-final-state-list w) (cons (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
+;; removeRule: world -> world
+;; Purpose: Removes a world from the world list
 (define removeRule (lambda (w)
                      (let ((input-list (world-input-list w))
                            (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
@@ -113,8 +121,10 @@
                                  (world-start-state w) (world-final-state-list w) (remove (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                  (world-cur-state w) (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
+;; addState: world -> world
+;; Purpose: Adds a start state to the world
 (define addStart(lambda(w)
                   (letrec
                       ((start-state (textbox-text(list-ref (world-input-list w) 2)))
@@ -125,22 +135,24 @@
                                  start-state (world-final-state-list w)  (world-rule-list w)
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                  start-state (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [ (null? (world-start-state w))
                            (world (cons start-state (world-state-list w)) (world-symbol-list w)
                                   start-state (world-final-state-list w)  (world-rule-list w)
                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                   start-state (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
+                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
                            (world (world-state-list w) (world-symbol-list w)
                                   start-state (world-final-state-list w)  (world-rule-list w)
                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                   start-state (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
+                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [else w]))))
 
 
+;; replaceStart: world -> world
+;; Purpose: Replaces the start state in the world
 (define replaceStart(lambda(w)
                       (letrec
                           ((start-state (textbox-text(list-ref (world-input-list w) 2)))
@@ -150,14 +162,15 @@
                                       start-state (world-final-state-list w)  (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       start-state (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w (world-error-msg w)))]
                              [else  (world (cons start-state (world-state-list w)) (world-symbol-list w)
                                            start-state (world-final-state-list w)  (world-rule-list w)
                                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                            start-state (world-button-list w) new-input-list
-                                           (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+                                           (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
-
+;; addEnd: world -> world
+;; Purpose: Adds an end state to the world
 (define addEnd(lambda(w)
                 (letrec
                     ((end-state (textbox-text(list-ref (world-input-list w) 3)))
@@ -167,13 +180,15 @@
                                (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                        [else   (world (cons end-state (world-state-list w)) (world-symbol-list w)
                                       (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       (world-cur-state w) (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]))))
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
+;; addAlpha: world -> world
+;; Purpose: Adds a letter to the worlds alpha-list
 (define addAlpha (lambda (w)
                    (let ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 1))))
                          (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 1) 100))))
@@ -185,8 +200,10 @@
                                (world-start-state w) (world-final-state-list w)  (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove-duplicates (cons input-value (world-alpha-list w))) string<?))]))))
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove-duplicates (cons input-value (world-alpha-list w))) string<?) (world-error-msg w))]))))
 
+;; rmvAlpha: world -> world
+;; Purpose: Removes a letter from the worlds alpha-list
 (define rmvAlpha (lambda (w)
                    (let ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 1))))
                          (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 1) 100))))
@@ -197,8 +214,10 @@
                                (world-start-state w) (world-final-state-list w)  (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove input-value (world-alpha-list w)) string<?))]))))
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove input-value (world-alpha-list w)) string<?) (world-error-msg w))]))))
 
+;; addSigma: world -> world
+;; Purpose: adds a letter or group of letters to the sigma list
 (define addSigma (lambda (w)
                    (letrec ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 7))))
 
@@ -239,16 +258,18 @@
                                (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                (append sigma-list (world-sigma-list w)) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w))]
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                        [else (redraw-world w)]))))
-                     
+
+;; clearSigma: world -> world
+;; Purpose: Removes all elements of the sigma list
 (define clearSigma (lambda (w)
                      (let ((new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
                        (world (world-state-list w) (world-symbol-list w)
                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
                               '() (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)))))                       
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w)))))                       
                           
                         
                         
@@ -310,11 +331,20 @@
 (define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
                           CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST ALPHA-LIST))
 
+
+;; draw-world: world -> world
+;; Purpose: draws the world every time on-draw is called
 (define (draw-world w)
-  (letrec((draw-input-list (lambda (loi scn)
+  (letrec(
+          ;; draw-input-list: list-of-inputs sceen -> sceen
+          ;; Purpose: draws every input structure from the list onto the given sceen
+          (draw-input-list (lambda (loi scn)
                              (cond
                                [(empty? loi) scn]
                                [else (draw-textbox (car loi) (draw-input-list (cdr loi) scn))])))
+          
+          ;; draw-button-list: list-of-buttons sceen -> sceen
+          ;; Purpose: draws every button structure from the list onto the given sceen
           (draw-button-list (lambda (lob scn)
                               (cond
                                 [(empty? lob) scn]
@@ -636,21 +666,21 @@
 (define (create-new-world-input a-world loi)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world)))
+         loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world) (world-error-msg a-world)))
 
 ;; create-new-world-button: world list-of-button-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-button-fields changes
 (define (create-new-world-button a-world lob)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) lob
-         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world)))
+         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world) (world-error-msg a-world)))
 
 ;; redraw-world: world -> world
 ;; redraws the same world as before
 (define (redraw-world a-world)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world)))
+         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world) (world-error-msg a-world)))
   
 
 (big-bang
