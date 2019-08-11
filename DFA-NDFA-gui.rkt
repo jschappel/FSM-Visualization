@@ -280,7 +280,7 @@
                             (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                             (world-cur-state w) (world-button-list w) (world-input-list w)
                             (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)
-                            (msgWindow "Hello World! Wow this is a super long message. I hope it does not go on forever" (posn (/ WIDTH 2) (/ HEIGHT 2))))))
+                            (msgWindow "Hello World! Wow this is a super long message. I hope it does not go on forever" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2))))))
                      
                           
                         
@@ -363,7 +363,7 @@
           (draw-error-msg (lambda (window scn)
                             (cond
                               [(null? window) scn]
-                              [else (draw-window window scn)])))
+                              [else (draw-window window scn WIDTH HEIGHT)])))
           
           (deg-shift (if (empty? (world-state-list w)) 0 (/ 360 (length (world-state-list w)))))
           
