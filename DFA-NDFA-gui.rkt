@@ -8,7 +8,7 @@
 (define RIGHT (/ WIDTH 5))
 (define BOTTOM(/ HEIGHT 8))
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
-(define E-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
+(define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -69,7 +69,8 @@
 (define addState (lambda (w)
                    (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
-                     (cond[(ormap (lambda (x) (equal? state x)) (world-state-list w))
+                     (cond[(equal? "" state) w]
+                           [(ormap (lambda (x) (equal? state x)) (world-state-list w))
                            w]
                           [else  (world (cons state (world-state-list w)) (world-symbol-list w)
                                         (world-start-state w) (world-final-state-list w) (world-rule-list w)
@@ -162,7 +163,7 @@
                                       start-state (world-final-state-list w)  (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       start-state (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w (world-error-msg w)))]
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                              [else  (world (cons start-state (world-state-list w)) (world-symbol-list w)
                                            start-state (world-final-state-list w)  (world-rule-list w)
                                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -269,7 +270,18 @@
                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
                               '() (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
-                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w)))))                       
+                              (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w)))))
+
+;; runProgram: world -> world
+;; Purpose: creates the machiene, checks the values for errors, then either returns the error or generates the code.
+(define runProgram (lambda (w)
+                     (world (world-state-list w) (world-symbol-list w)
+                            (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                            (world-cur-state w) (world-button-list w) (world-input-list w)
+                            (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)
+                            (msgWindow "Hello World! Wow this is a super long message. I hope it does not go on forever" (posn (/ WIDTH 2) (/ HEIGHT 2))))))
+                     
                           
                         
                         
@@ -293,7 +305,7 @@
 
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) NULL-FUNCTION))
 (define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) NULL-FUNCTION))
-(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) NULL-FUNCTION))
+(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) runProgram))
 
 (define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 70) addSigma))
 (define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 100) clearSigma))
@@ -323,13 +335,9 @@
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
 
 
-;; MESG WIDOW
-(define TEST-WINDOW (msgWindow "Hello World! This is a string that is super long and will need a funtion to render it on multipul lines" #f (posn (/ WIDTH 2) (/ HEIGHT 2))))
-
-
 ;; Initialize the world
 (define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
-                          CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST ALPHA-LIST))
+                          CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST ALPHA-LIST null))
 
 
 ;; draw-world: world -> world
@@ -349,6 +357,14 @@
                               (cond
                                 [(empty? lob) scn]
                                 [else (draw-button (car lob) (draw-button-list (cdr lob) scn))])))
+          
+          ;; draw-error-msg: msgWindow sceen -> sceen
+          ;; Purpose: renders the error message onto the screen if there is one.
+          (draw-error-msg (lambda (window scn)
+                            (cond
+                              [(null? window) scn]
+                              [else (draw-window window scn)])))
+          
           (deg-shift (if (empty? (world-state-list w)) 0 (/ 360 (length (world-state-list w)))))
           
           (get-x (lambda (theta rad) (truncate (+ (* rad (cos (degrees->radians theta))) X0))))
@@ -383,22 +399,22 @@
           
     
     (if (not (null? (world-cur-state w)))
-        (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
+        (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                                                                                                      (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                                                                   (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
                                                                                                                                                                (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                             (draw-button-list (world-button-list w)
-                                                                                                                                                                                              (draw-input-list (world-input-list w) (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) E-SCENE)))))))) X0 Y0 tip-x tip-y "black"))
-        (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
+                                                                                                                                                                                              (draw-input-list (world-input-list w)
+                                                                                                                                                                                                               (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE)))))))))
+                                                         X0 Y0 tip-x tip-y "black"))
+        
+        (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                    (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                 (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
                                                                              (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                           (draw-button-list (world-button-list w)
                                                                                                             (draw-input-list (world-input-list w)
-                                                                                                                             (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2)
-                                                                                                                                          ;;(draw-window TEST-WINDOW E-SCENE)
-                                                                                                                                          E-SCENE
-                                                                                                                                          )))))))))))
+                                                                                                                             (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
 
 
 ;; top-input-label: null -> image
@@ -629,15 +645,24 @@
     
     (cond
       [(string=? me "button-down")
-       ;;(begin
-         ;;(println (exit-pressed? x y TEST-WINDOW WIDTH HEIGHT)))
-       (define buttonPressed (check-button-list (world-button-list w) x y))
        (cond
-         [(not (null? buttonPressed)) (run-function buttonPressed (create-new-world-button w (active-button-list (world-button-list w) x y)))]
-         [else (create-new-world-input w (check-and-set (world-input-list w) x y))])]
-      [(string=? me "button-up")
-       (create-new-world-button w (map (lambda (x) (set-inactive-button x)) (world-button-list w)))]
-      [else (redraw-world w)])))
+         ;; See if there is an error to be displayed. If so disable all buttons and inputs
+         [(not (null? (world-error-msg w)))
+          (cond
+            [(equal? (exit-pressed? x y (world-error-msg w) WIDTH HEIGHT) #t) (world (world-state-list w) (world-symbol-list w)
+                                                                                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                                                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                                                                     (world-cur-state w) (world-button-list w) (world-input-list w)
+                                                                                     (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) null)]
+            [else (redraw-world w)])]
+         [else (begin
+                 (define buttonPressed (check-button-list (world-button-list w) x y))
+                 (cond
+                   [(not (null? buttonPressed)) (run-function buttonPressed (create-new-world-button w (active-button-list (world-button-list w) x y)))]
+                   [else (create-new-world-input w (check-and-set (world-input-list w) x y))]))])]
+         [(string=? me "button-up")
+          (create-new-world-button w (map (lambda (x) (set-inactive-button x)) (world-button-list w)))]
+         [else (redraw-world w)])))
 
 
 

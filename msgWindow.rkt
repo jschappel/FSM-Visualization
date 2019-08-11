@@ -8,8 +8,7 @@
 (provide
  (struct-out msgWindow)
  draw-window
- exit-pressed?
- )
+ exit-pressed?)
 
 (define HEIGHT 300) ;; Height of the message box
 (define WIDTH 400) ;; Width of the message box
@@ -20,9 +19,8 @@
 
 ;; msgWindow: A structure that represents a GUI msg window
 ;; - msg: A string that holds the message for the window to display
-;; - active: Boolean that represents wether or not the window is active
 ;; - location: A posn that is the location of where the window will be rendered
-(struct msgWindow (msg active location))
+(struct msgWindow (msg location))
 
 
 (define (draw-window window scn)
@@ -46,17 +44,20 @@
      (overlay/align "left" "top"
                     (overlay/align "right" "top"
                                    (overlay
-                                    (text "Error" 15 "black")
-                                    (rectangle WIDTH TOP-HEIGHT "outline" "black"))
-                                   (overlay
                                     (text "X" 12 "white")
-                                    (rectangle 30 TOP-HEIGHT "solid" "red")))
-                    (rectangle WIDTH HEIGHT "outline" "black")))))
+                                    (rectangle 30 TOP-HEIGHT "solid" "red"))
+                                   (overlay
+                                    (text "Error!" 15 "black")
+                                    (rectangle WIDTH TOP-HEIGHT "outline" "black")
+                                    (rectangle WIDTH TOP-HEIGHT "solid" (make-color 197 199 199)))
+                                   )
+                    (rectangle WIDTH HEIGHT "outline" "black")
+                    (rectangle WIDTH HEIGHT "solid" "white")))))
 
 
- ;; exit-pressed? int int msgWindow int int -> boolean
- ;; Purpose: Determins if the exit buttons was pressed
- ;; When given an x and y corrdinate, will determine if that coordinate was inside the exit button. If so returns true
+;; exit-pressed? int int msgWindow int int -> boolean
+;; Purpose: Determins if the exit buttons was pressed
+;; When given an x and y corrdinate, will determine if that coordinate was inside the exit button. If so returns true
 (define (exit-pressed? mouse-x mouse-y msgWindow scnW scnH)
   (cond
     [(and (and (> mouse-x (- (+ (/ scnW 2) (/ WIDTH 2)) 30))
