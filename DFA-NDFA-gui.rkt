@@ -489,7 +489,7 @@
            ;; Purpose: Given a tuple will format it into a string to be displayed on the gui
            (inner-list-2-string (lambda (tup accum)
                                   (cond
-                                    [(empty? tup) (string-append accum " ) ")]
+                                    [(empty? tup) (string-append (substring accum 1 (string-length accum)) ") ")]
                                     [else (inner-list-2-string (cdr tup) (string-append accum " " (car tup)))])))
 
            ;; list-2-string: list-of-rules -> string
