@@ -31,18 +31,18 @@
 
 
 ;; WORLD GLOBAL VARIABLES
-(define STATE-LIST '()) ;; The list of states for the machine 
+(define STATE-LIST INIT-STATES) ;; The list of states for the machine 
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
-(define START-STATE null) ;; The starting state of the machinen
-(define FINAL-STATE-LIST '()) ;; The list of final states that the machine has
-(define RULE-LIST '()) ;; The list of rules that the machine must follow
-(define SIGMA-LIST '()) ;; The list of sigma for the mahcine
+(define START-STATE INIT-START) ;; The starting state of the machinen
+(define FINAL-STATE-LIST INIT-FINALS) ;; The list of final states that the machine has
+(define RULE-LIST INIT-RULES) ;; The list of rules that the machine must follow
+(define SIGMA-LIST INIT-SIGMA) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
-(define CURRENT-STATE null) ;; The current state that the machine is in
+(define CURRENT-STATE INIT-CURRENT) ;; The current state that the machine is in
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
-(define ALPHA-LIST '()) ;; TODO
+(define ALPHA-LIST INIT-ALPHA) ;; TODO
 
 ;; COLORS FOR GUI
 (define CONTROLLER-BUTTON-COLOR (make-color 48 63 159))
