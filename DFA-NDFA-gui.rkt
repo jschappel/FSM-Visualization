@@ -40,7 +40,7 @@
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
 (define CURRENT-STATE INIT-CURRENT) ;; The current state that the machine is in
-(define PROCESSED-CONFIG-LIST (car INIT-UNPROCESSED)) ;; TODO
+(define PROCESSED-CONFIG-LIST (list (car INIT-UNPROCESSED))) ;; TODO
 (define UNPROCESSED-CONFIG-LIST (cdr INIT-UNPROCESSED)) ;; TODO
 (define ALPHA-LIST INIT-ALPHA) ;; TODO
 
@@ -298,15 +298,35 @@
 (define showNext(lambda(w)
                   (letrec(
                        (nextState (car (world-unporcessed-config-list w)))
+                       
                        (transitions (cdr (world-unporcessed-config-list w))))
                     
                     (println transitions)
                     (println nextState)
-                    (world (world-state-list w) (world-symbol-list w)
+                    
+                   (if (eq? nextState 'accept)
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                             (world-cur-state w)(world-button-list w) (world-input-list w)
+                              (append (list nextState) (world-processed-config-list w)) (world-unporcessed-config-list w) (world-alpha-list w)  (msgWindow "Hello World! ya finished the machine" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2))))
+
+                       (world (world-state-list w) (world-symbol-list w)
                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (car (cdr nextState)) (world-button-list w) (world-input-list w)
-                              (append nextState (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w)))))
+                              (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))))))
+(define goBack(lambda(w)
+                (letrec(
+                        (previousState (car (cdr (world-processed-config-list w)))))
+                        (println (world-processed-config-list w))
+                        (println (car (cdr previousState)))
+                        
+                  (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (car (cdr previousState)) (world-button-list w) (world-input-list w)
+                              (cdr (world-processed-config-list w)) (cons previousState (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))))
                       
                         
                         
@@ -329,7 +349,7 @@
 
 
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) showNext))
-(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) NULL-FUNCTION))
+(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) goBack))
 (define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) runProgram))
 
 (define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 70) addSigma))
