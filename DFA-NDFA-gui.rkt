@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
+(require 2htdp/image 2htdp/universe FSM "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -16,6 +16,19 @@
 (define R 175)
 (define inner-R (- R 25))
 (define the-circle (circle R "outline" "transparent"))
+
+
+;; TEMP VARIABLES BELOW
+(define INIT-STATES '(A B C D))
+(define INIT-START 'A)
+(define INIT-FINALS '(C D))
+(define INIT-RULES (list '(A a B) '(B b A) '(A c C) '(C b D)))
+(define INIT-SIGMA '(a b c b))
+(define INIT-CURRENT 'A)
+(define INIT-ALPHA '(a b c))
+(define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
+(define INIT-UNPROCESSED (sm-showtransitions M1 INIT-SIGMA))
+
 
 ;; WORLD GLOBAL VARIABLES
 (define STATE-LIST '()) ;; The list of states for the machine 
@@ -44,7 +57,7 @@
 ;; - symbol-list:
 ;; - start-state:
 ;; - final-state-list:
-;; - rule-list: A list of rules that the machine must follow
+;; - rule-list: A list-of-tuples that are the rules that the machine must follow
 ;; - sigma-list:
 ;; - tape-position:
 ;; - cur-rule:
@@ -102,7 +115,7 @@
                       [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
                       [else
                        (world (world-state-list w) (world-symbol-list w)
-                              (world-start-state w) (world-final-state-list w) (cons (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
+                              (world-start-state w) (world-final-state-list w) (cons (list r1 r2 r3) (world-rule-list w))
                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                               (world-cur-state w) (world-button-list w) new-input-list
                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
@@ -119,7 +132,7 @@
                          [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
                          [else
                           (world (world-state-list w) (world-symbol-list w)
-                                 (world-start-state w) (world-final-state-list w) (remove (string-append "(" r1 " " r2 " " r3 ")") (world-rule-list w))
+                                 (world-start-state w) (world-final-state-list w) (remove (list r1 r2 r3) (world-rule-list w))
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                  (world-cur-state w) (world-button-list w) new-input-list
                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
@@ -472,19 +485,23 @@
 ;; Purpose: The label for the list of rules
 (define (lor-bottom-label lor)
   (letrec (
-           ;; list-to-string: list-of-rules -> list-of-strings
+           ;; inner-list-2-rules: tuple-list -> string
+           ;; Purpose: Given a tuple will format it into a string to be displayed on the gui
+           (inner-list-2-string (lambda (tup accum)
+                                  (cond
+                                    [(empty? tup) (string-append accum " ) ")]
+                                    [else (inner-list-2-string (cdr tup) (string-append accum " " (car tup)))])))
+
+           ;; list-2-string: list-of-rules -> string
            ;; Purpose: formates a list of rules to be displayed on the gui
-           (list-to-string (lambda (lor)
-                             (cond
-                               [(empty? lor) ""]
-                               [else (string-append (car lor) " , " (list-to-string (cdr lor)))])))
-           (text-str (list-to-string (reverse lor)))
-           (text-to-render (lambda (txt)
-                             (cond
-                               [(< (string-length txt) 3) ""]
-                               [else (substring txt 0 (- (string-length txt) 2))])))
+           (list-2-string (lambda (lor)
+                            (cond
+                              [(empty? lor) ""]
+                              [else (string-append "(" (inner-list-2-string (car lor) "") (list-2-string (cdr lor)))])))
+
+           (text-str (list-2-string (reverse lor)))
            )
-    (scale-text-to-image (text (text-to-render text-str) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)))
+    (scale-text-to-image (text text-str 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)))
 
 
    
