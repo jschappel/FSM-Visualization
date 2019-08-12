@@ -36,12 +36,13 @@
 (define START-STATE INIT-START) ;; The starting state of the machinen
 (define FINAL-STATE-LIST INIT-FINALS) ;; The list of final states that the machine has
 (define RULE-LIST INIT-RULES) ;; The list of rules that the machine must follow
-(define SIGMA-LIST '()) ;; The list of sigma for the mahcine
+(define SIGMA-LIST INIT-SIGMA) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
 (define CURRENT-STATE INIT-CURRENT) ;; The current state that the machine is in
-(define PROCESSED-CONFIG-LIST '()) ;; TODO
-(define UNPROCESSED-CONFIG-LIST '()) ;; TODO
+(define PROCESSED-CONFIG-LIST (list (car INIT-UNPROCESSED))) ;; TODO
+(define UNPROCESSED-CONFIG-LIST (cdr INIT-UNPROCESSED)) ;; TODO
+
 (define ALPHA-LIST INIT-ALPHA) ;; TODO
 
 ;; COLORS FOR GUI
@@ -87,7 +88,7 @@
                      (cond[(equal? "" state) w]
                           [(ormap (lambda (x) (equal? state x)) (world-state-list w))
                            w]
-                          [else  (world (cons (string->symbol state (world-state-list w))) (world-symbol-list w)
+                          [else  (world (cons (string->symbol state) (world-state-list w)) (world-symbol-list w)
                                         (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                         (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                         (world-cur-state w) (world-button-list w) new-input-list
@@ -306,6 +307,39 @@
                                        (world-cur-state w) (world-button-list w) (world-input-list w)
                                        (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)
                                        (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))]))))
+                    
+(define showNext(lambda(w)
+                  (letrec(
+                       (nextState (car (world-unporcessed-config-list w)))
+                       
+                       (transitions (cdr (world-unporcessed-config-list w))))
+                    
+                    (println transitions)
+                    (println nextState)
+                    
+                   (if (eq? nextState 'accept)
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                             (world-cur-state w)(world-button-list w) (world-input-list w)
+                              (append (list nextState) (world-processed-config-list w)) (world-unporcessed-config-list w) (world-alpha-list w)  (msgWindow "Hello World! ya finished the machine" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2))))
+
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (car (cdr nextState)) (world-button-list w) (world-input-list w)
+                              (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))))))
+(define goBack(lambda(w)
+                (letrec(
+                        (previousState (car (cdr (world-processed-config-list w)))))
+                        (println (world-processed-config-list w))
+                        (println (car (cdr previousState)))
+                        
+                  (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (car (cdr previousState)) (world-button-list w) (world-input-list w)
+                              (cdr (world-processed-config-list w)) (cons previousState (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))))
                         
                         
 
@@ -326,8 +360,8 @@
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
 
 
-(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) NULL-FUNCTION))
-(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) NULL-FUNCTION))
+(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) showNext))
+(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) goBack))
 (define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) runProgram))
 
 (define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 70) addSigma))
@@ -454,7 +488,7 @@
   (letrec ((list-to-string (lambda (lor)
                              (cond
                                [(empty? lor) ""]
-                               [else (string-append (car lor) " " (list-to-string (cdr lor)))]))))
+                               [else (string-append (symbol->string (car lor)) " " (list-to-string (cdr lor)))]))))
     (scale-text-to-image (text (list-to-string (reverse los)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
 
 
@@ -718,21 +752,21 @@
 (define (create-new-world-input a-world loi)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         loi (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world) (world-error-msg a-world)))
+         loi (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-alpha-list a-world) (world-error-msg a-world)))
 
 ;; create-new-world-button: world list-of-button-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-button-fields changes
 (define (create-new-world-button a-world lob)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) lob
-         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world) (world-error-msg a-world)))
+         (world-input-list a-world) (world-processed-config-list a-world) (world-unporcessed-config-list a-world) (world-alpha-list a-world) (world-error-msg a-world)))
 
 ;; redraw-world: world -> world
 ;; redraws the same world as before
 (define (redraw-world a-world)
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         (world-input-list a-world) (world-processed-config-list a-world) UNPROCESSED-CONFIG-LIST (world-alpha-list a-world) (world-error-msg a-world)))
+         (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-alpha-list a-world) (world-error-msg a-world)))
   
 
 (big-bang
