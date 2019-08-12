@@ -26,8 +26,8 @@
 (define INIT-SIGMA '(a b c b))
 (define INIT-CURRENT 'A)
 (define INIT-ALPHA '(a b c))
-(define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
-(define INIT-UNPROCESSED (sm-showtransitions M1 INIT-SIGMA))
+;(define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
+;(define INIT-UNPROCESSED (sm-showtransitions M1 INIT-SIGMA))
 
 
 ;; WORLD GLOBAL VARIABLES
@@ -35,13 +35,13 @@
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
 (define START-STATE INIT-START) ;; The starting state of the machinen
 (define FINAL-STATE-LIST INIT-FINALS) ;; The list of final states that the machine has
-(define RULE-LIST '()) ;; The list of rules that the machine must follow
+(define RULE-LIST INIT-RULES) ;; The list of rules that the machine must follow
 (define SIGMA-LIST '()) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
 (define CURRENT-STATE INIT-CURRENT) ;; The current state that the machine is in
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
-(define UNPROCESSED-CONFIG-LIST INIT-UNPROCESSED) ;; TODO
+(define UNPROCESSED-CONFIG-LIST '()) ;; TODO
 (define ALPHA-LIST INIT-ALPHA) ;; TODO
 
 ;; COLORS FOR GUI
@@ -49,6 +49,8 @@
 (define INPUT-COLOR (make-color 255 193 7))
 (define START-STATE-COLOR (make-color 6 142 60))
 (define END-STATE-COLOR (make-color 219 9 9))
+(define MSG-ERROR (make-color 255 0 0))
+(define MSG-SUCCESS (make-color 0 255 0))
 
 
 
@@ -83,7 +85,7 @@
                    (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                      (cond[(equal? "" state) w]
-                           [(ormap (lambda (x) (equal? state x)) (world-state-list w))
+                          [(ormap (lambda (x) (equal? state x)) (world-state-list w))
                            w]
                           [else  (world (cons (string->symbol state (world-state-list w))) (world-symbol-list w)
                                         (world-start-state w) (world-final-state-list w) (world-rule-list w)
@@ -288,14 +290,22 @@
 ;; runProgram: world -> world
 ;; Purpose: creates the machiene, checks the values for errors, then either returns the error or generates the code.
 (define runProgram (lambda (w)
-                     (world (world-state-list w) (world-symbol-list w)
-                            (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                            (world-cur-state w) (world-button-list w) (world-input-list w)
-                            (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)
-                            (msgWindow "Hello World! Wow this is a super long message. I hope it does not go on forever" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2))))))
-                     
-                          
+                     (let
+                         ((machine-check (check-machine  (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa)))
+                       (cond
+                         [(not (equal? (check-machine  (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa) true))
+                            (world (world-state-list w) (world-symbol-list w)
+                                   (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                   (world-cur-state w) (world-button-list w) (world-input-list w)
+                                   (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (msgWindow "TODO: ADD ERROR MSG HERE!" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-ERROR))]
+                         
+                         [else  (world (world-state-list w) (world-symbol-list w)
+                                       (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                       (world-cur-state w) (world-button-list w) (world-input-list w)
+                                       (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)
+                                       (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))]))))
                         
                         
 
@@ -413,21 +423,21 @@
     
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
-                                                                                                                                     (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                                                                  (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                                                               (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                                                                                                            (draw-button-list (world-button-list w)
-                                                                                                                                                                                              (draw-input-list (world-input-list w)
-                                                                                                                                                                                                               (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
-                                                         X0 Y0 tip-x tip-y "black")))
+                                                                                                                                                                         (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                                                                                                                                      (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                                                                                                   (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                                                                                                                (draw-button-list (world-button-list w)
+                                                                                                                                                                                                                                  (draw-input-list (world-input-list w)
+                                                                                                                                                                                                                                                   (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
+                                                                                                                              X0 Y0 tip-x tip-y "black")))
         
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
-                                                   (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
-                                                                             (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                          (draw-button-list (world-button-list w)
-                                                                                                            (draw-input-list (world-input-list w)
-                                                                                                                             (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
+                                                                                       (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                                                    (place-image (create-gui-top (world-sigma-list w)) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                 (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                              (draw-button-list (world-button-list w)
+                                                                                                                                                (draw-input-list (world-input-list w)
+                                                                                                                                                                 (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
 
 
 ;; top-input-label: null -> image
@@ -677,9 +687,9 @@
                  (cond
                    [(not (null? buttonPressed)) (run-function buttonPressed (create-new-world-button w (active-button-list (world-button-list w) x y)))]
                    [else (create-new-world-input w (check-and-set (world-input-list w) x y))]))])]
-         [(string=? me "button-up")
-          (create-new-world-button w (map (lambda (x) (set-inactive-button x)) (world-button-list w)))]
-         [else (redraw-world w)])))
+      [(string=? me "button-up")
+       (create-new-world-button w (map (lambda (x) (set-inactive-button x)) (world-button-list w)))]
+      [else (redraw-world w)])))
 
 
 

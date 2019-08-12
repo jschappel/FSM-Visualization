@@ -16,7 +16,7 @@
 (define WIDTH 400) ;; Width of the message box
 (define TOP-HEIGHT 20) ;; Height of the header for the message box
 (define MSG-WIDTH 300) ;; Width of of the displayed message
-(define TEXT-COLOR (make-color 255 0 0)) ;; The color of the message
+;;(define TEXT-COLOR (make-color 255 0 0)) ;; The color of the message
 (define BACKGROUND-SHADE (make-color 0 0 0 100)) ;; The color of the shaded background
 
 
@@ -24,7 +24,8 @@
 ;; - msg: A string that holds the message for the window to display
 ;; - header: A string that is the header for the message window
 ;; - location: A posn that is the location of where the window will be rendered
-(struct msgWindow (msg header location))
+;; - font-color: A color structure that is the color of the msg
+(struct msgWindow (msg header location font-color))
 
 
 ;; draw-window: msgWindow scene Scene-width Scene-height -> image
@@ -43,9 +44,9 @@
            (render-text (lambda (msg-array accum fnt-size)
                          
                           (cond
-                            [(empty? msg-array) (text accum fnt-size TEXT-COLOR)]
+                            [(empty? msg-array) (text accum fnt-size (msgWindow-font-color window))]
                             [(equal? "" accum) (render-text (cdr msg-array) (string-append accum (car msg-array)) fnt-size)]
-                            [(> (image-width (text (string-append accum " " (car msg-array)) fnt-size TEXT-COLOR)) MSG-WIDTH) (render-text (cdr msg-array) (string-append accum "\n" (car msg-array)) fnt-size)]
+                            [(> (image-width (text (string-append accum " " (car msg-array)) fnt-size (msgWindow-font-color window))) MSG-WIDTH) (render-text (cdr msg-array) (string-append accum "\n" (car msg-array)) fnt-size)]
                             [else (render-text (cdr msg-array) (string-append accum " " (car msg-array)) fnt-size)]))))
     (overlay
      (render-text (string-split (msgWindow-msg window)) "" 18)
