@@ -35,13 +35,13 @@
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
 (define START-STATE INIT-START) ;; The starting state of the machinen
 (define FINAL-STATE-LIST INIT-FINALS) ;; The list of final states that the machine has
-(define RULE-LIST INIT-RULES) ;; The list of rules that the machine must follow
-(define SIGMA-LIST INIT-SIGMA) ;; The list of sigma for the mahcine
+(define RULE-LIST '()) ;; The list of rules that the machine must follow
+(define SIGMA-LIST '()) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
 (define CURRENT-STATE INIT-CURRENT) ;; The current state that the machine is in
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
-(define UNPROCESSED-CONFIG-LIST '()) ;; TODO
+(define UNPROCESSED-CONFIG-LIST INIT-UNPROCESSED) ;; TODO
 (define ALPHA-LIST INIT-ALPHA) ;; TODO
 
 ;; COLORS FOR GUI
@@ -85,7 +85,7 @@
                      (cond[(equal? "" state) w]
                            [(ormap (lambda (x) (equal? state x)) (world-state-list w))
                            w]
-                          [else  (world (cons state (world-state-list w)) (world-symbol-list w)
+                          [else  (world (cons (string->symbol state (world-state-list w))) (world-symbol-list w)
                                         (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                         (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                         (world-cur-state w) (world-button-list w) new-input-list
@@ -392,20 +392,20 @@
            (lambda (l i s)
              (cond[(empty? l) s]
                   [(equal? (car l) (world-start-state w))  
-                   (place-image(overlay (text (car l) 25 START-STATE-COLOR)
+                   (place-image(overlay (text (symbol->string (car l)) 25 START-STATE-COLOR)
                                         (circle 25 "outline" START-STATE-COLOR))
                                (get-x (* deg-shift i) R)
                                (get-y (* deg-shift i) R)
                                (draw-states(cdr l) (add1 i) s))]
                   [(ormap (lambda(x) (equal? (car l) x)) (world-final-state-list w))
-                   (place-image(overlay (text (car l) 20 "red")
+                   (place-image(overlay (text (symbol->string (car l)) 20 "red")
                                         (overlay
                                          (circle 20 "outline" END-STATE-COLOR)
                                          (circle 25 "outline" END-STATE-COLOR)))
                                (get-x (* deg-shift i) R)
                                (get-y (* deg-shift i) R)
                                (draw-states(cdr l) (add1 i) s))]
-                  [else (place-image (text  (car l) 25 "black")
+                  [else (place-image (text  (symbol->string (car l)) 25 "black")
                                      (get-x (* deg-shift i) R)
                                      (get-y (* deg-shift i) R)
                                      (draw-states (cdr l) (add1 i) s))]))))
@@ -418,8 +418,8 @@
                                                                                                                                                                (place-image (create-gui-bottom (world-rule-list w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                             (draw-button-list (world-button-list w)
                                                                                                                                                                                               (draw-input-list (world-input-list w)
-                                                                                                                                                                                                               (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE)))))))))
-                                                         X0 Y0 tip-x tip-y "black"))
+                                                                                                                                                                                                               (place-image (create-gui-alpha (world-alpha-list w)) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
+                                                         X0 Y0 tip-x tip-y "black")))
         
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                    (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
@@ -541,7 +541,7 @@
            ;; Purpose: Creates a box for the sting to be placed in
            (t-box (lambda (a-string fnt-size)
                     (overlay
-                     (text a-string fnt-size "Black")
+                     (text (symbol->string a-string) fnt-size "Black")
                      (rectangle (/ WIDTH 11) fnt-size "outline" "transparent")))))
     
     (cond
