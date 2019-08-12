@@ -107,9 +107,9 @@
 ;; Purpose: Addes a rule to the world rule list
 (define addRule (lambda (w)
                   (let ((input-list (world-input-list w))
-                        (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
-                        (r2 (string-trim (textbox-text (list-ref (world-input-list w) 5))))
-                        (r3 (string-trim (textbox-text (list-ref (world-input-list w) 6))))
+                        (r1 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 4)))))
+                        (r2 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 5)))))
+                        (r3 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 6)))))
                         (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
                     (cond
                       [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
@@ -124,9 +124,9 @@
 ;; Purpose: Removes a world from the world list
 (define removeRule (lambda (w)
                      (let ((input-list (world-input-list w))
-                           (r1 (string-trim (textbox-text (list-ref (world-input-list w) 4))))
-                           (r2 (string-trim (textbox-text (list-ref (world-input-list w) 5))))
-                           (r3 (string-trim (textbox-text (list-ref (world-input-list w) 6))))
+                           (r1 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 4)))))
+                           (r2 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 5)))))
+                           (r3 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 6)))))
                            (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
                        (cond
                          [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
@@ -214,7 +214,7 @@
                                (world-start-state w) (world-final-state-list w)  (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove-duplicates (cons input-value (world-alpha-list w))) string<?) (world-error-msg w))]))))
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove-duplicates (cons (string->symbol input-value) (world-alpha-list w))) symbol<?) (world-error-msg w))]))))
 
 ;; rmvAlpha: world -> world
 ;; Purpose: Removes a letter from the worlds alpha-list
@@ -228,7 +228,7 @@
                                (world-start-state w) (world-final-state-list w)  (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove input-value (world-alpha-list w)) string<?) (world-error-msg w))]))))
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (sort (remove (string->symbol input-value) (world-alpha-list w)) symbol<?) (world-error-msg w))]))))
 
 ;; addSigma: world -> world
 ;; Purpose: adds a letter or group of letters to the sigma list
@@ -490,7 +490,7 @@
            (inner-list-2-string (lambda (tup accum)
                                   (cond
                                     [(empty? tup) (string-append (substring accum 1 (string-length accum)) ") ")]
-                                    [else (inner-list-2-string (cdr tup) (string-append accum " " (car tup)))])))
+                                    [else (inner-list-2-string (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
 
            ;; list-2-string: list-of-rules -> string
            ;; Purpose: formates a list of rules to be displayed on the gui
@@ -541,7 +541,7 @@
            ;; Purpose: Creates a box for the sting to be placed in
            (t-box (lambda (a-string fnt-size)
                     (overlay
-                     (text a-string fnt-size "Black")
+                     (text (symbol->string a-string) fnt-size "Black")
                      (rectangle (/ WIDTH 11) fnt-size "outline" "transparent")))))
     
     (cond
