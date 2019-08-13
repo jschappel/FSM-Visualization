@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe FSM "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
+(require 2htdp/image 2htdp/universe fsm "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -26,24 +26,24 @@
 (define INIT-SIGMA '(a b c b))
 (define INIT-CURRENT 'A)
 (define INIT-ALPHA '(a b c))
-;(define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
-;(define INIT-UNPROCESSED (sm-showtransitions M1 INIT-SIGMA))
+(define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
+;;(define INIT-UNPROCESSED (sm-showtransitions M1 INIT-SIGMA))
 
 
 ;; WORLD GLOBAL VARIABLES
-(define STATE-LIST INIT-STATES) ;; The list of states for the machine 
+(define STATE-LIST '()) ;; The list of states for the machine 
 (define SYMBOL-LIST '()) ;; The list of symbols for the machine
-(define START-STATE INIT-START) ;; The starting state of the machinen
-(define FINAL-STATE-LIST INIT-FINALS) ;; The list of final states that the machine has
-(define RULE-LIST INIT-RULES) ;; The list of rules that the machine must follow
-(define SIGMA-LIST INIT-SIGMA) ;; The list of sigma for the mahcine
+(define START-STATE null) ;; The starting state of the machinen
+(define FINAL-STATE-LIST '()) ;; The list of final states that the machine has
+(define RULE-LIST '()) ;; The list of rules that the machine must follow
+(define SIGMA-LIST '()) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
-(define CURRENT-STATE INIT-CURRENT) ;; The current state that the machine is in
-(define PROCESSED-CONFIG-LIST (list (car INIT-UNPROCESSED))) ;; TODO
-(define UNPROCESSED-CONFIG-LIST (cdr INIT-UNPROCESSED)) ;; TODO
+(define CURRENT-STATE null) ;; The current state that the machine is in
+(define PROCESSED-CONFIG-LIST '());;(list (car INIT-UNPROCESSED))) ;; TODO
+(define UNPROCESSED-CONFIG-LIST '()) ;;(cdr INIT-UNPROCESSED)) ;; TODO
 
-(define ALPHA-LIST INIT-ALPHA) ;; TODO
+(define ALPHA-LIST '()) ;; TODO
 
 ;; COLORS FOR GUI
 (define CONTROLLER-BUTTON-COLOR (make-color 48 63 159))
@@ -51,7 +51,8 @@
 (define START-STATE-COLOR (make-color 6 142 60))
 (define END-STATE-COLOR (make-color 219 9 9))
 (define MSG-ERROR (make-color 255 0 0))
-(define MSG-SUCCESS (make-color 0 255 0))
+(define MSG-SUCCESS (make-color 65 122 67))
+(define MSG-CAUTION (make-color 252 156 10))
 
 
 
@@ -238,16 +239,17 @@
 (define addSigma (lambda (w)
                    (letrec ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 7))))
 
-                            ;; real-string->list: string -> list
+                            ;; real-string->list: string -> list-of-symbols
                             ;; Purpose: converts a string to a list. Unlike Racket's string->list, this function converts every element of the
                             ;; list to a string as opposed to a char.
                             (real-string->list (lambda (str)
-                                                 (letrec (;; convert-to-list: string list -> list
+                                                 (letrec (;; convert-to-list: string list -> list-of-symbols
                                                           ;; Purpose: this function uses an accumulator to accumulate all elements of the string converted to a list  
                                                           (convert-to-list (lambda (str accum) 
                                                                              (cond
                                                                                [(< (string-length str) 1) accum]
-                                                                               [else (convert-to-list (substring str 1) (cons (substring str 0 1) accum))]))))
+                                                                               [(equal? (substring str 0 1) " ") (convert-to-list (substring str 1) accum)]
+                                                                               [else (convert-to-list (substring str 1) (cons (string->symbol (substring str 0 1)) accum))]))))
                                                    (convert-to-list str '()))))
 
                             ;; check-alpha: list-of-alpha list-of-sigma -> boolean
@@ -266,6 +268,7 @@
                                                [else (check-lists loa los)]))))
                             (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))) 
                             (sigma-list (real-string->list input-value)))
+                     (println (check-alpha (world-alpha-list w) sigma-list))
                      
                      (cond
                        [(equal? (check-alpha (world-alpha-list w) sigma-list) #f) (redraw-world w)]
@@ -278,6 +281,7 @@
                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                        [else (redraw-world w)]))))
 
+
 ;; clearSigma: world -> world
 ;; Purpose: Removes all elements of the sigma list
 (define clearSigma (lambda (w)
@@ -288,6 +292,7 @@
                               (world-cur-state w) (world-button-list w) new-input-list
                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w)))))
 
+
 ;; runProgram: world -> world
 ;; Purpose: creates the machiene, checks the values for errors, then either returns the error or generates the code.
 (define runProgram (lambda (w)
@@ -295,51 +300,71 @@
                          ((machine-check (check-machine  (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa)))
                        (cond
                          [(not (equal? (check-machine  (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa) true))
+                          (redraw-world-with-msg w "TODO: ADD check-machine errors here!" "Error" MSG-ERROR)]
+                         ;; Check if sigma was filled in if so then we are all good!
+                         [(empty? (world-sigma-list w)) (redraw-world-with-msg w "Your Sigma list is empty! Please make sure there are variables in your Sigma List and then press Gen Code again." "Error" MSG-ERROR)]
+                         [else
+                          (let (;; machine: Since the machine passed the error test above. We will now construct it
+                                (unprocessed-list (sm-showtransitions (make-dfa (world-state-list w)
+                                                                                (world-alpha-list w)
+                                                                                (world-start-state w)
+                                                                                (world-final-state-list w)
+                                                                                (world-rule-list w)) (world-sigma-list w))))
                             (world (world-state-list w) (world-symbol-list w)
                                    (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                    (world-cur-state w) (world-button-list w) (world-input-list w)
-                                   (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (msgWindow "TODO: ADD ERROR MSG HERE!" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-ERROR))]
-                         
-                         [else  (world (world-state-list w) (world-symbol-list w)
-                                       (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                       (world-cur-state w) (world-button-list w) (world-input-list w)
-                                       (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w)
-                                       (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))]))))
-                    
-(define showNext(lambda(w)
-                  (letrec(
-                       (nextState (car (world-unporcessed-config-list w)))
-                       
-                       (transitions (cdr (world-unporcessed-config-list w))))
-                    
-                    (println transitions)
-                    (println nextState)
-                    
-                   (if (eq? nextState 'accept)
-                       (world (world-state-list w) (world-symbol-list w)
-                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                             (world-cur-state w)(world-button-list w) (world-input-list w)
-                              (append (list nextState) (world-processed-config-list w)) (world-unporcessed-config-list w) (world-alpha-list w)  (msgWindow "Hello World! ya finished the machine" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2))))
+                                   (list (car unprocessed-list)) (cdr unprocessed-list) (world-alpha-list w)
+                                   (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]))))
 
-                       (world (world-state-list w) (world-symbol-list w)
-                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                              (car (cdr nextState)) (world-button-list w) (world-input-list w)
-                              (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))))))
+
+;; showNext: world -> world
+;; Purpose: shows the next state that the machine is in
+(define showNext(lambda(w)
+                  ;; Check if sigma list is empty
+                  (cond
+                    [(empty? (world-sigma-list w)) (redraw-world-with-msg w "Your Sigam List is empty! Please add variables to the Sigma List to continue." "Notice" MSG-CAUTION)]
+                    [else
+                     ;; Check if the unprocessed list is empty. If so then gencode was not yet pressed
+                     (cond
+                       [(empty? (world-unporcessed-config-list w)) (redraw-world-with-msg w "You must build your machine before you can continue. Please press Gen Code to proceed." "Error" MSG-ERROR)]
+                       [else
+                        (letrec(
+                                (nextState (car (world-unporcessed-config-list w)))
+                                (transitions (cdr (world-unporcessed-config-list w))))
+                    
+                          (println transitions)
+                          (println nextState)
+                    
+                          (if (eq? nextState 'accept)
+                              (world (world-state-list w) (world-symbol-list w)
+                                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                     (world-cur-state w)(world-button-list w) (world-input-list w)
+                                     (append (list nextState) (world-processed-config-list w)) (world-unporcessed-config-list w) (world-alpha-list w)  (msgWindow "Hello World! ya finished the machine" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))
+
+                              (world (world-state-list w) (world-symbol-list w)
+                                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
+                                     (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))))])])))
 (define goBack(lambda(w)
-                (letrec(
-                        (previousState (car (cdr (world-processed-config-list w)))))
-                        (println (world-processed-config-list w))
-                        (println (car (cdr previousState)))
+                (println (world-processed-config-list w))
+                ;;check if the processed list is empty
+                (cond
+                  [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "you must first press GenCode to have access to this feature." "Notice" MSG-CAUTION)]
+                  [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are not more previous states." "Notice" MSG-CAUTION)]
+                  [else
+                   (letrec(
+                           (previousState (car (cdr (world-processed-config-list w)))))
+                     ;;(println (world-processed-config-list w))
+                     ;;(println (car (cdr previousState)))
                         
-                  (world (world-state-list w) (world-symbol-list w)
-                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                              (car (cdr previousState)) (world-button-list w) (world-input-list w)
-                              (cdr (world-processed-config-list w)) (cons previousState (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))))
+                     (world (world-state-list w) (world-symbol-list w)
+                            (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                            (car (cdr previousState)) (world-button-list w) (world-input-list w)
+                            (cdr (world-processed-config-list w)) (cons previousState (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
                         
                         
 
@@ -395,6 +420,33 @@
 ;; Initialize the world
 (define INIT-WORLD (world STATE-LIST SYMBOL-LIST START-STATE FINAL-STATE-LIST RULE-LIST SIGMA-LIST TAPE-POSITION
                           CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST ALPHA-LIST null))
+
+
+
+;; cmd functions
+
+;; visualize: fsm-machine -> world
+;; Purpose: allows a user the enter a machine manually
+(define (visualize fsm-machine)
+  (letrec ((run-program (lambda (w)
+                          (big-bang
+                              w
+                            (name "FSM GUI (Early ALPHA)")
+                            (on-draw draw-world)
+                            (on-mouse process-mouse-event)
+                            (on-key process-key)))))
+    
+    (case (sm-type fsm-machine)
+      [(dfa) (run-program (world (sm-getstates fsm-machine) (world-symbol-list INIT-WORLD) (sm-getstart fsm-machine)
+                                 (sm-getfinals fsm-machine) (reverse (sm-getrules fsm-machine)) (world-sigma-list INIT-WORLD)
+                                 (world-tape-position INIT-WORLD) (world-cur-rule INIT-WORLD) (sm-getstart fsm-machine)
+                                 (world-button-list INIT-WORLD) (world-input-list INIT-WORLD) (world-processed-config-list INIT-WORLD)
+                                 (world-unporcessed-config-list INIT-WORLD) (sm-getalphabet fsm-machine)
+                                 (msgWindow "Machine was Added to the GUI. Please Added to the Sigma list and then press Gen Code to continue" "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+      [(ndfa) (println "TODO ADD NDFA")]
+      [(pda) (println "TODO ADD PDA")]
+      [(dfst) (println "TODO ADD DFST")])))
+  
 
 
 ;; draw-world: world -> world
@@ -767,6 +819,14 @@
   (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
          (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
          (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-alpha-list a-world) (world-error-msg a-world)))
+
+;; redraw-world-with-msg: world string string color -> world
+;; Purpose: redraws the same world with a message
+(define (redraw-world-with-msg a-world msg-body msg-header msg-color)
+  (world (world-state-list a-world) (world-symbol-list a-world) (world-start-state a-world) (world-final-state-list a-world) (world-rule-list a-world)
+         (world-sigma-list a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
+         (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-alpha-list a-world)
+         (msgWindow msg-body msg-header (posn (/ WIDTH 2) (/ HEIGHT 2)) msg-color)))
   
 
 (big-bang
