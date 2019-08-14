@@ -21,7 +21,7 @@
 
 
 ;; msgWindow: A structure that represents a GUI msg window
-;; - msg: A string that holds the message for the window to display
+;; - msg: A string that holds the message for the window to display. If you wish to display text on the next line add ~n into your string.
 ;; - header: A string that is the header for the message window
 ;; - location: A posn that is the location of where the window will be rendered
 ;; - font-color: A color structure that is the color of the msg
@@ -42,12 +42,16 @@
            ;; render-text: array accum int -> string
            ;; Purpose: decides if the string should continue onto the next line
            (render-text (lambda (msg-array accum fnt-size)
-                         
                           (cond
-                            [(empty? msg-array) (text accum fnt-size (msgWindow-font-color window))]
+                            [(empty? msg-array) (begin (println accum)(text accum fnt-size (msgWindow-font-color window)))]
                             [(equal? "" accum) (render-text (cdr msg-array) (string-append accum (car msg-array)) fnt-size)]
+                            [(equal? "~n" (car msg-array)) (render-text (cdr msg-array) (string-append accum "\n" ) fnt-size)]
                             [(> (image-width (text (string-append accum " " (car msg-array)) fnt-size (msgWindow-font-color window))) MSG-WIDTH) (render-text (cdr msg-array) (string-append accum "\n" (car msg-array)) fnt-size)]
-                            [else (render-text (cdr msg-array) (string-append accum " " (car msg-array)) fnt-size)]))))
+                            [else (cond
+                                    [(equal? "\n" (substring accum (- (string-length accum) 1))) (render-text (cdr msg-array) (string-append accum (car msg-array)) fnt-size)]
+                                    [else
+                                     (render-text (cdr msg-array) (string-append accum " " (car msg-array)) fnt-size)])]))))
+    
     (overlay
      (render-text (string-split (msgWindow-msg window)) "" 18)
      (overlay/align "left" "top"

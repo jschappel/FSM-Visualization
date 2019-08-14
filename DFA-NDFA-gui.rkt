@@ -267,9 +267,8 @@
                                                [(empty? los) #f]
                                                [else (check-lists loa los)]))))
                             (new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))) 
-                            (sigma-list (real-string->list input-value)))
-                     (println (check-alpha (world-alpha-list w) sigma-list))
-                     
+                            (sigma-list (reverse (real-string->list input-value))))
+
                      (cond
                        [(equal? (check-alpha (world-alpha-list w) sigma-list) #f) (redraw-world w)]
                        [(equal? input-value "") (redraw-world w)]
@@ -310,6 +309,7 @@
                                                                                 (world-start-state w)
                                                                                 (world-final-state-list w)
                                                                                 (world-rule-list w)) (world-sigma-list w))))
+                           
                             (world (world-state-list w) (world-symbol-list w)
                                    (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -333,33 +333,28 @@
                                 (nextState (car (world-unporcessed-config-list w)))
                                 (transitions (cdr (world-unporcessed-config-list w))))
                     
-                          (println transitions)
-                          (println nextState)
-                    
-                          (if (eq? nextState 'accept)
-                              (world (world-state-list w) (world-symbol-list w)
-                                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                     (world-cur-state w)(world-button-list w) (world-input-list w)
-                                     (append (list nextState) (world-processed-config-list w)) (world-unporcessed-config-list w) (world-alpha-list w)  (msgWindow "Hello World! ya finished the machine" "Error" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))
+                          (cond
+                            [(eq? nextState 'accept)
+                             (redraw-world-with-msg w "The Machine was accepted!" "Success" MSG-SUCCESS)]
+                            [(eq? nextState 'reject)
+                             (redraw-world-with-msg w "The Machine was rejected" "Error" MSG-ERROR)]
+                            [else
+                             (world (world-state-list w) (world-symbol-list w)
+                                    (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                    (car (cdr nextState)) (world-button-list w) (world-input-list w)
+                                    (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))]))])])))
 
-                              (world (world-state-list w) (world-symbol-list w)
-                                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                                     (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
-                                     (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))))])])))
+;; goBack: world -> world
+;; shows the previous state that the machine was in
 (define goBack(lambda(w)
-                (println (world-processed-config-list w))
-                ;;check if the processed list is empty
                 (cond
                   [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "you must first press GenCode to have access to this feature." "Notice" MSG-CAUTION)]
                   [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are not more previous states." "Notice" MSG-CAUTION)]
                   [else
                    (letrec(
                            (previousState (car (cdr (world-processed-config-list w)))))
-                     ;;(println (world-processed-config-list w))
-                     ;;(println (car (cdr previousState)))
-                        
+                     
                      (world (world-state-list w) (world-symbol-list w)
                             (world-start-state w) (world-final-state-list w) (world-rule-list w)
                             (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -442,7 +437,7 @@
                                  (world-tape-position INIT-WORLD) (world-cur-rule INIT-WORLD) (sm-getstart fsm-machine)
                                  (world-button-list INIT-WORLD) (world-input-list INIT-WORLD) (world-processed-config-list INIT-WORLD)
                                  (world-unporcessed-config-list INIT-WORLD) (sm-getalphabet fsm-machine)
-                                 (msgWindow "Machine was Added to the GUI. Please Added to the Sigma list and then press Gen Code to continue" "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                 (msgWindow "Machine was Added to the GUI. Your almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
       [(ndfa) (println "TODO ADD NDFA")]
       [(pda) (println "TODO ADD PDA")]
       [(dfst) (println "TODO ADD DFST")])))
@@ -541,7 +536,7 @@
                              (cond
                                [(empty? lor) ""]
                                [else (string-append (symbol->string (car lor)) " " (list-to-string (cdr lor)))]))))
-    (scale-text-to-image (text (list-to-string (reverse los)) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
+    (scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
 
 
 ;; create-gui-bottom: list-of-rules -> image
