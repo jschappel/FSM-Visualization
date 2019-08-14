@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe fsm "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
+(require 2htdp/image 2htdp/universe fsm net/sendurl "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -79,6 +79,13 @@
 ;; THIS FUNCTION IS JUST A PLACEHOLDER
 (define NULL-FUNCTION (lambda (w)
                         (redraw-world w)))
+
+
+;; oppenHelp; world -> world
+;; Purpose: opens the help link in an external browser window
+(define openHelp (lambda (w)
+                   (send-url "https://github.com/jschappel/FSM-Visualization/blob/master/README.md" #t)
+                   (redraw-world w)))
 
 ;; addState: world -> world
 ;; Purpose: Adds a state to the world
@@ -312,7 +319,7 @@
                             (world (world-state-list w) (world-symbol-list w)
                                    (world-start-state w) (world-final-state-list w) (world-rule-list w)
                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                   (world-cur-state w) (world-button-list w) (world-input-list w)
+                                   (world-start-state w) (world-button-list w) (world-input-list w)
                                    (list (car unprocessed-list)) (cdr unprocessed-list) (world-alpha-list w)
                                    (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]))))
 
@@ -348,7 +355,7 @@
 ;; shows the previous state that the machine was in
 (define goBack(lambda(w)
                 (cond
-                  [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "you must first press GenCode to have access to this feature." "Notice" MSG-CAUTION)]
+                  [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "You must first press GenCode to have access to this feature." "Notice" MSG-CAUTION)]
                   [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are not more previous states." "Notice" MSG-CAUTION)]
                   [else
                    (letrec(
@@ -379,12 +386,13 @@
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
 
 
-(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 135) showNext))
-(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 170) goBack))
+(define BTN-HELP (button 70 30 "Help" "solid" (make-color 39 168 242) (make-color 39 168 242) 25 #f #f (posn 55 105) openHelp))
+(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 140) showNext))
+(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) goBack))
 (define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) runProgram))
 
-(define BTN-SIGMA-ADD (button 70 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 70) addSigma))
-(define BTN-SIGMA-CLEAR (button 70 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 25 #f #f (posn 55 100) clearSigma))
+(define BTN-SIGMA-ADD (button 40 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 30 70) addSigma))
+(define BTN-SIGMA-CLEAR (button 40 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 80 70) clearSigma))
 
 ;; BUTTON-LIST: A List containing all buttons that are displayed on the scene.
 (define BUTTON-LIST (list BTN-ADD-STATE BTN-REMOVE-STATE
@@ -393,7 +401,8 @@
                           BTN-ADD-END BTN-REMOVE-END
                           BTN-ADD-RULES BTN-REMOVE-RULES
                           BTN-RUN BTN-NEXT BTN-PREV
-                          BTN-SIGMA-ADD BTN-SIGMA-CLEAR))
+                          BTN-SIGMA-ADD BTN-SIGMA-CLEAR
+                          BTN-HELP))
 
 
 
