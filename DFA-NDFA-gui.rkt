@@ -156,21 +156,21 @@
                     
                     (cond[(and (null? (world-start-state w)) (ormap(lambda(x) (equal? start-state x)) (world-state-list w)))
                           (world (world-state-list w) (world-symbol-list w)
-                                 start-state (world-final-state-list w)  (world-rule-list w)
+                                 (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                 start-state (world-button-list w) new-input-list
+                                 (string->symbol start-state) (world-button-list w) new-input-list
                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [ (null? (world-start-state w))
-                           (world (cons start-state (world-state-list w)) (world-symbol-list w)
-                                  start-state (world-final-state-list w)  (world-rule-list w)
+                           (world (cons (string->symbol start-state) (world-state-list w)) (world-symbol-list w)
+                                  (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                  start-state (world-button-list w) new-input-list
+                                 (string->symbol start-state) (world-button-list w) new-input-list
                                   (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
                            (world (world-state-list w) (world-symbol-list w)
-                                  start-state (world-final-state-list w)  (world-rule-list w)
+                                  (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                  start-state (world-button-list w) new-input-list
+                                  (string->symbol start-state) (world-button-list w) new-input-list
                                   (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [else w]))))
 
@@ -181,16 +181,16 @@
                       (letrec
                           ((start-state (textbox-text(list-ref (world-input-list w) 2)))
                            (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref (world-input-list w) 2) 100))))
-                        (cond[ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
+                        (cond[ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (world-state-list w))
                                (world (world-state-list w) (world-symbol-list w)
-                                      start-state (world-final-state-list w)  (world-rule-list w)
+                                     (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                      start-state (world-button-list w) new-input-list
+                                      (string->symbol start-state) (world-button-list w) new-input-list
                                       (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                             [else  (world (cons start-state (world-state-list w)) (world-symbol-list w)
-                                           start-state (world-final-state-list w)  (world-rule-list w)
+                             [else  (world (cons(string->symbol start-state) (world-state-list w)) (world-symbol-list w)
+                                          (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                           start-state (world-button-list w) new-input-list
+                                           (string->symbol start-state) (world-button-list w) new-input-list
                                            (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
 ;; addEnd: world -> world
@@ -199,14 +199,14 @@
                 (letrec
                     ((end-state (textbox-text(list-ref (world-input-list w) 3)))
                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
-                  (cond[(ormap (lambda(x) (equal? x end-state)) (world-state-list w))
+                  (cond[(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
                         (world (world-state-list w) (world-symbol-list w)
-                               (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
+                               (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                       [else   (world (cons end-state (world-state-list w)) (world-symbol-list w)
-                                      (world-start-state w) (cons end-state (world-final-state-list w)) (world-rule-list w)
+                       [else   (world (cons (string->symbol end-state) (world-state-list w)) (world-symbol-list w)
+                                      (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       (world-cur-state w) (world-button-list w) new-input-list
                                       (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
