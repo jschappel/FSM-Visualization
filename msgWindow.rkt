@@ -43,7 +43,7 @@
            ;; Purpose: decides if the string should continue onto the next line
            (render-text (lambda (msg-array accum fnt-size)
                           (cond
-                            [(empty? msg-array) (begin (println accum)(text accum fnt-size (msgWindow-font-color window)))]
+                            [(empty? msg-array) (text accum fnt-size (msgWindow-font-color window))]
                             [(equal? "" accum) (render-text (cdr msg-array) (string-append accum (car msg-array)) fnt-size)]
                             [(equal? "~n" (car msg-array)) (render-text (cdr msg-array) (string-append accum "\n" ) fnt-size)]
                             [(> (image-width (text (string-append accum " " (car msg-array)) fnt-size (msgWindow-font-color window))) MSG-WIDTH) (render-text (cdr msg-array) (string-append accum "\n" (car msg-array)) fnt-size)]

@@ -27,7 +27,7 @@
 (define INIT-CURRENT 'A)
 (define INIT-ALPHA '(a b c))
 (define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
-;;(define INIT-UNPROCESSED (sm-showtransitions M1 INIT-SIGMA))
+
 
 
 ;; WORLD GLOBAL VARIABLES
@@ -40,9 +40,8 @@
 (define TAPE-POSITION 0) ;; The current position on the tape
 (define CURRENT-RULE null) ;; The current rule that the machine is following
 (define CURRENT-STATE null) ;; The current state that the machine is in
-(define PROCESSED-CONFIG-LIST '());;(list (car INIT-UNPROCESSED))) ;; TODO
-(define UNPROCESSED-CONFIG-LIST '()) ;;(cdr INIT-UNPROCESSED)) ;; TODO
-
+(define PROCESSED-CONFIG-LIST '()) ;; TODO
+(define UNPROCESSED-CONFIG-LIST '()) ;; TODO
 (define ALPHA-LIST '()) ;; TODO
 
 ;; COLORS FOR GUI
