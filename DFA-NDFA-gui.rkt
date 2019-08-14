@@ -84,7 +84,7 @@
 ;; oppenHelp; world -> world
 ;; Purpose: opens the help link in an external browser window
 (define openHelp (lambda (w)
-                   (send-url "https://github.com/jschappel/FSM-Visualization/blob/master/README.md" #t)
+                   (send-url "https://github.com/jschappel/FSM-Visualization/blob/master/help.md" #t)
                    (redraw-world w)))
 
 ;; addState: world -> world
