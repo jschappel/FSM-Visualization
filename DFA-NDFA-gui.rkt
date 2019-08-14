@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe fsm net/sendurl "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
+(require 2htdp/image 2htdp/universe FSM net/sendurl "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -154,7 +154,7 @@
                       ((start-state (textbox-text(list-ref (world-input-list w) 2)))
                        (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
                     
-                    (cond[(and (null? (world-start-state w)) (ormap(lambda(x) (equal? start-state x)) (world-state-list w)))
+                    (cond[(and (null? (world-start-state w)) (ormap(lambda(x) (equal? (string->symbol start-state) x)) (world-state-list w)))
                           (world (world-state-list w) (world-symbol-list w)
                                  (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -341,9 +341,9 @@
                     
                           (cond
                             [(eq? nextState 'accept)
-                             (redraw-world-with-msg w "The Machine was accepted!" "Success" MSG-SUCCESS)]
+                             (redraw-world-with-msg w "The input was accepted." "Success" MSG-SUCCESS)]
                             [(eq? nextState 'reject)
-                             (redraw-world-with-msg w "The Machine was rejected" "Error" MSG-ERROR)]
+                             (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
                             [else
                              (world (world-state-list w) (world-symbol-list w)
                                     (world-start-state w) (world-final-state-list w) (world-rule-list w)
@@ -356,7 +356,7 @@
 (define goBack(lambda(w)
                 (cond
                   [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "You must first press GenCode to have access to this feature." "Notice" MSG-CAUTION)]
-                  [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are not more previous states." "Notice" MSG-CAUTION)]
+                  ;;[(empty? (cdr (world-processed-config-list w)) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION))]
                   [else
                    (letrec(
                            (previousState (car (cdr (world-processed-config-list w)))))
@@ -365,7 +365,7 @@
                             (world-start-state w) (world-final-state-list w) (world-rule-list w)
                             (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                             (car (cdr previousState)) (world-button-list w) (world-input-list w)
-                            (cdr (world-processed-config-list w)) (cons previousState (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
+                            (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
                         
                         
 
@@ -445,7 +445,7 @@
                                  (world-tape-position INIT-WORLD) (world-cur-rule INIT-WORLD) (sm-getstart fsm-machine)
                                  (world-button-list INIT-WORLD) (world-input-list INIT-WORLD) (world-processed-config-list INIT-WORLD)
                                  (world-unporcessed-config-list INIT-WORLD) (sm-getalphabet fsm-machine)
-                                 (msgWindow "Machine was Added to the GUI. Your almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                 (msgWindow "Machine was Added to the GUI. You're almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
       [(ndfa) (println "TODO ADD NDFA")]
       [(pda) (println "TODO ADD PDA")]
       [(dfst) (println "TODO ADD DFST")])))
@@ -487,8 +487,10 @@
           (tip-x (get-x (* deg-shift current-index) inner-R))
           (tip-y(get-y (* deg-shift current-index) inner-R))
           (the-arrow (triangle 20 "solid" "tan"))
+
           (draw-states
            (lambda (l i s)
+             ;;(println (world-cur-state w))
              (cond[(empty? l) s]
                   [(equal? (car l) (world-start-state w))  
                    (place-image(overlay (text (symbol->string (car l)) 25 START-STATE-COLOR)
@@ -509,7 +511,7 @@
                                      (get-y (* deg-shift i) R)
                                      (draw-states (cdr l) (add1 i) s))]))))
           
-    
+    ;;(println (* deg-shift current-index))
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
