@@ -8,3 +8,6 @@ compiled/
 .DS_Store
 *.bak
 TAGS
+
+# auto-generated rkt file
+fsmGUIFunctions.rkt
