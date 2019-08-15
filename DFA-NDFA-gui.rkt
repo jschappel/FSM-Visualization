@@ -9,6 +9,7 @@
 (define BOTTOM(/ HEIGHT 8))
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
+(define SCENE-TITLE "FSM GUI ALPHA 2.0")
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -18,7 +19,7 @@
 (define the-circle (circle R "outline" "transparent"))
 
 
-;; TES MACHINES BELOW
+;; TEST MACHINES BELOW
 (define INIT-STATES '(A B C D))
 (define INIT-START 'A)
 (define INIT-FINALS '(C D))
@@ -206,12 +207,30 @@
 ;; addEnd: world -> world
 ;; Purpose: Adds an end state to the world
 (define addEnd (lambda(w)
-                (letrec
+                (let
                     ((end-state (textbox-text(list-ref (world-input-list w) 3)))
                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
                   (cond[(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
                         (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
+                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                               (world-cur-state w) (world-button-list w) new-input-list
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                       [else   (world (cons (string->symbol end-state) (world-state-list w)) (world-symbol-list w)
+                                      (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
+                                      (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                      (world-cur-state w) (world-button-list w) new-input-list
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
+
+;; rmvEnd: world -> world
+;; Purpose: removes a end state from the world-final-state-list
+(define rmvEnd (lambda (w)
+                 (let
+                    ((end-state (textbox-text(list-ref (world-input-list w) 3)))
+                     (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
+                   (cond[(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
+                        (world (world-state-list w) (world-symbol-list w)
+                               (world-start-state w) (remove (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                (world-cur-state w) (world-button-list w) new-input-list
                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
@@ -418,7 +437,7 @@
                            (world-alpha-list w)
                            type)
                           #t)
-                         (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: " (path->string (current-directory))) "Success" MSG-SUCCESS))]
+                         (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success" MSG-SUCCESS))]
                       [else
                        (begin
                          (write-to-file
@@ -492,7 +511,7 @@
 (define BTN-REMOVE-START (button 50 25 "Replace" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 3 CONTROL-BOX-H) 25)) replaceStart))
 
 (define BTN-ADD-END (button 50 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 71)) addEnd))
-(define BTN-REMOVE-END (button 50 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) NULL-FUNCTION))
+(define BTN-REMOVE-END (button 50 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 18 #f #f (posn (- WIDTH 50) (- (* 4 CONTROL-BOX-H) 25)) rmvEnd))
 
 (define BTN-ADD-RULES (button 70 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
@@ -541,12 +560,12 @@
 ;; cmd functions
 
 ;; visualize: fsm-machine -> world
-;; Purpose: allows a user the enter a machine manually
+;; Purpose: allows a user to pre-load a machine
 (define (visualize fsm-machine)
   (letrec ((run-program (lambda (w)
                           (big-bang
                               w
-                            (name "FSM GUI (Early ALPHA)")
+                            (name SCENE-TITLE)
                             (on-draw draw-world)
                             (on-mouse process-mouse-event)
                             (on-key process-key)))))
@@ -947,7 +966,7 @@
 
 (big-bang
     INIT-WORLD
-  (name "FSM GUI ALPHA 2.0")
+  (name SCENE-TITLE)
   (on-draw draw-world)
   (on-mouse process-mouse-event)
   (on-key process-key))
