@@ -161,11 +161,13 @@
 ;; addState: world -> world
 ;; Purpose: Adds a start state to the world
 (define addStart (lambda(w)
-                  (letrec
-                      ((start-state (textbox-text(list-ref (world-input-list w) 2)))
+                  (let
+                      ((start-state (string-trim(textbox-text(list-ref (world-input-list w) 2))))
                        (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
                     
-                    (cond[(and (null? (world-start-state w)) (ormap(lambda(x) (equal? (string->symbol start-state) x)) (world-state-list w)))
+                    (cond
+                      [(equal? "" start-state) (redraw-world w)]
+                      [(and (null? (world-start-state w)) (ormap(lambda(x) (equal? (string->symbol start-state) x)) (world-state-list w)))
                           (world (world-state-list w) (world-symbol-list w)
                                  (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -189,10 +191,12 @@
 ;; replaceStart: world -> world
 ;; Purpose: Replaces the start state in the world
 (define replaceStart (lambda(w)
-                      (letrec
-                          ((start-state (textbox-text(list-ref (world-input-list w) 2)))
+                      (let
+                          ((start-state (string-trim(textbox-text(list-ref (world-input-list w) 2))))
                            (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref (world-input-list w) 2) 100))))
-                        (cond[ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (world-state-list w))
+                        (cond
+                          [(equal? "" start-state) (redraw-world w)]
+                          [ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (world-state-list w))
                                (world (world-state-list w) (world-symbol-list w)
                                       (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -208,9 +212,11 @@
 ;; Purpose: Adds an end state to the world
 (define addEnd (lambda(w)
                 (let
-                    ((end-state (textbox-text(list-ref (world-input-list w) 3)))
+                    ((end-state (string-trim (textbox-text(list-ref (world-input-list w) 3))))
                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
-                  (cond[(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
+                  (cond
+                    [(equal? "" end-state) (redraw-world w)]
+                    [(ormap (lambda (x) (equal? x (string->symbol end-state))) (world-state-list w))
                         (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
@@ -226,9 +232,11 @@
 ;; Purpose: removes a end state from the world-final-state-list
 (define rmvEnd (lambda (w)
                  (let
-                    ((end-state (textbox-text(list-ref (world-input-list w) 3)))
+                    ((end-state (string-trim(textbox-text(list-ref (world-input-list w) 3))))
                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
-                   (cond[(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
+                   (cond
+                     [(equal? "" end-state) (redraw-world w)]
+                     [(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
                         (world (world-state-list w) (world-symbol-list w)
                                (world-start-state w) (remove (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
