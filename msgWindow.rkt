@@ -46,6 +46,7 @@
                             [(empty? msg-array) (text accum fnt-size (msgWindow-font-color window))]
                             [(equal? "" accum) (render-text (cdr msg-array) (string-append accum (car msg-array)) fnt-size)]
                             [(equal? "~n" (car msg-array)) (render-text (cdr msg-array) (string-append accum "\n" ) fnt-size)]
+                            [(> (image-width (text (car msg-array) fnt-size (msgWindow-font-color window))) MSG-WIDTH) (render-text (cdr msg-array) (string-append accum "\n" (substring (car msg-array) 0 (truncate (/ (string-length (car msg-array)) 2))) "\n" (substring (car msg-array) (truncate (/ (string-length (car msg-array)) 2)) (- (string-length (car msg-array)) 1))) fnt-size)]
                             [(> (image-width (text (string-append accum " " (car msg-array)) fnt-size (msgWindow-font-color window))) MSG-WIDTH) (render-text (cdr msg-array) (string-append accum "\n" (car msg-array)) fnt-size)]
                             [else (cond
                                     [(equal? "\n" (substring accum (- (string-length accum) 1))) (render-text (cdr msg-array) (string-append accum (car msg-array)) fnt-size)]

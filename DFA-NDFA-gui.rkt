@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe FSM net/sendurl "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
+(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -18,7 +18,7 @@
 (define the-circle (circle R "outline" "transparent"))
 
 
-;; TEMP VARIABLES BELOW
+;; TES MACHINES BELOW
 (define INIT-STATES '(A B C D))
 (define INIT-START 'A)
 (define INIT-FINALS '(C D))
@@ -26,7 +26,17 @@
 (define INIT-SIGMA '(a b c b))
 (define INIT-CURRENT 'A)
 (define INIT-ALPHA '(a b c))
+;; This machine does not work
 (define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
+
+;; This machine works
+(define M2 (make-dfa '(A B C)
+                       '(a b c)
+                       'A
+                       '(B C)
+                       (list '(A b C)
+                             '(A a B)
+                             '(B c A))))
 
 
 
@@ -149,7 +159,7 @@
 
 ;; addState: world -> world
 ;; Purpose: Adds a start state to the world
-(define addStart(lambda(w)
+(define addStart (lambda(w)
                   (letrec
                       ((start-state (textbox-text(list-ref (world-input-list w) 2)))
                        (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
@@ -164,7 +174,7 @@
                            (world (cons (string->symbol start-state) (world-state-list w)) (world-symbol-list w)
                                   (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                 (string->symbol start-state) (world-button-list w) new-input-list
+                                  (string->symbol start-state) (world-button-list w) new-input-list
                                   (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                          [ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
                            (world (world-state-list w) (world-symbol-list w)
@@ -177,25 +187,25 @@
 
 ;; replaceStart: world -> world
 ;; Purpose: Replaces the start state in the world
-(define replaceStart(lambda(w)
+(define replaceStart (lambda(w)
                       (letrec
                           ((start-state (textbox-text(list-ref (world-input-list w) 2)))
                            (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref (world-input-list w) 2) 100))))
                         (cond[ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (world-state-list w))
                                (world (world-state-list w) (world-symbol-list w)
-                                     (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                                      (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                       (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                       (string->symbol start-state) (world-button-list w) new-input-list
                                       (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
                              [else  (world (cons(string->symbol start-state) (world-state-list w)) (world-symbol-list w)
-                                          (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                                           (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
                                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
                                            (string->symbol start-state) (world-button-list w) new-input-list
                                            (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
 ;; addEnd: world -> world
 ;; Purpose: Adds an end state to the world
-(define addEnd(lambda(w)
+(define addEnd (lambda(w)
                 (letrec
                     ((end-state (textbox-text(list-ref (world-input-list w) 3)))
                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
@@ -323,6 +333,108 @@
                                    (list (car unprocessed-list)) (cdr unprocessed-list) (world-alpha-list w)
                                    (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]))))
 
+;; genCode: world -> world
+;; Purpose: Constructs the code to create the specified machine
+(define genCode (lambda (w)
+                  (letrec(
+                          (type 'dfa)
+                          ;; nameGen: null -> symbol
+                          ;; Purpose: generates a random name that consists of one capital letter(A-Z) and one number(1-9)
+                          ;;   for the mechine being created.
+                          (nameGen (lambda ()
+                                     (let ((letter (string (integer->char (random 65 91))))
+                                           (number (string (integer->char (random 48 58)))))
+                                       (string->symbol (string-append letter number)))))
+
+                          ;; construct-machine: list-of-states symbol list-of-finals list-of-rules list-of-alpha symbol
+                          ;; Purpose: Constructs the code to create the specified machine
+                          (construct-machine (lambda (states start finals rules alpha type)
+                                               (letrec (
+                                                        ;; nameGen: null -> symbol
+                                                        ;; Purpose: generates a random name that consists of one capital letter(A-Z) and one number(1-9)
+                                                        ;;   for the mechine being created.
+                                                        (nameGen (lambda ()
+                                                                   (let ((letter (string (integer->char (random 65 91))))
+                                                                         (number (string (integer->char (random 48 58)))))
+                                                                     (string->symbol (string-append letter number))))))
+                      
+                                                 (case type
+                                                   [(dfa) `(define ,(nameGen) (make-dfa (quote (,@states)) (quote (,@alpha)) (quote ,start) (quote ,finals) (quote (,@rules))))]
+                                                   [(ndfa) (println "TODO ADD NDFA")]
+                                                   [(pda) (println "TODO ADD PDA")]
+                                                   [(dfst) (println "TODO ADD DFST")]
+                                                   [else (error (format "The machine type: ~s, is not currently supported" type))]))))
+
+                          ;; write-to-file: string quasiquote boolean -> File
+                          ;; Purpose writes the comments and code to create a machine in the specified file.
+                          ;;   If the file does not exist it will create a file in the users current directory. If the file
+                          ;;   does exist then it adds the supplied args to the end of the file.
+                          (write-to-file (lambda (file machine status)
+                                           (letrec (
+                                                    ;; comments: boolean -> string
+                                                    ;; Purpose: Creates the comments for the machine
+                                                    (comments (lambda (status)
+                                                                (letrec (
+                                                                         (d (current-date)) ;; The current date
+                                                                         (formatt-date (string-append (number->string (date-month d)) "/" (number->string (date-day d)) "/" (number->string (date-year d)))) ;; formatted date in form: mm/dd/yyyy
+                                                                         (formatt-date-minute (if (< (date-minute d) 10) (string-append "0" (number->string (date-minute d))) (number->string (date-minute d))))
+                                
+                                                                         ;; formatt-time: null -> string
+                                                                         ;; Purpose: formatts military time into the from hh:mm:am/pm
+                                                                         (formatt-time (lambda ()
+                                                                                         (cond
+                                                                                           [(and (> (date-hour d) 12) (< (date-hour d) 24)) (string-append (number->string (- (date-hour d) 12)) ":" formatt-date-minute "pm")]
+                                                                                           [(equal? (date-hour d) 12) (string-append (number->string (date-hour d)) ":" formatt-date-minute "pm")]
+                                                                                           [(equal? (date-hour d) 24) (string-append (number->string (- (date-hour d) 12)) ":" formatt-date-minute "am")]
+                                                                                           [else (string-append (number->string (date-hour d)) ":" formatt-date-minute "am")]))))
+                                                                  (cond
+                                                                    [status (string-append ";; Created by fsm-GUI on: " formatt-date " at " (formatt-time)"\n;; This machine passed all tests.")]
+                                                                    [else (string-append ";; Created by fsm-GUI on: " formatt-date " at " (formatt-time)"\n;; WARNIMG: this machine failed to build!")])))))
+                                             (cond
+                                               [(file-exists? file) (call-with-output-file file
+                                                                      #:exists 'append
+                                                                      (lambda (out)
+                                                                        (displayln "" out)
+                                                                        (displayln (comments status) out)
+                                                                        (displayln machine out)))]
+                                               [else (call-with-output-file file
+                                                       (lambda (out)
+                                                         (displayln "#lang Racket" out)
+                                                         (displayln "(require fsm)" out)
+                                                         (displayln "" out)
+                                                         (displayln (comments status) out)
+                                                         (displayln machine out)))])))))
+
+                    (cond
+                      [(equal? #t (check-machine (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa))
+                       (begin
+                         (write-to-file
+                          "fsmGUIFunctions.rkt"
+                          (construct-machine
+                           (world-state-list w)
+                           (world-start-state w)
+                           (world-final-state-list w)
+                           (world-rule-list w)
+                           (world-alpha-list w)
+                           type)
+                          #t)
+                         (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: " (path->string (current-directory))) "Success" MSG-SUCCESS))]
+                      [else
+                       (begin
+                         (write-to-file
+                          "fsmGUIFunctions.rkt"
+                          (construct-machine
+                           (world-state-list w)
+                           (world-start-state w)
+                           (world-final-state-list w)
+                           (world-rule-list w)
+                           (world-alpha-list w)
+                           type)
+                          #f)
+                         (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Error" MSG-ERROR))]))))
+                      
+
+                  
 
 ;; showNext: world -> world
 ;; Purpose: shows the next state that the machine is in
@@ -335,9 +447,9 @@
                      (cond
                        [(empty? (world-unporcessed-config-list w)) (redraw-world-with-msg w "You must build your machine before you can continue. Please press Gen Code to proceed." "Error" MSG-ERROR)]
                        [else
-                        (letrec(
-                                (nextState (car (world-unporcessed-config-list w)))
-                                (transitions (cdr (world-unporcessed-config-list w))))
+                        (let(
+                             (nextState (car (world-unporcessed-config-list w)))
+                             (transitions (cdr (world-unporcessed-config-list w))))
                     
                           (cond
                             [(eq? nextState 'accept)
@@ -351,21 +463,21 @@
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
                                     (append (list nextState) (world-processed-config-list w)) transitions (world-alpha-list w) (world-error-msg w))]))])])))
 
-;; goBack: world -> world
+;; showPrev: world -> world
 ;; shows the previous state that the machine was in
-(define goBack(lambda(w)
-                (cond
-                  [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "You must first press GenCode to have access to this feature." "Notice" MSG-CAUTION)]
-                  ;;[(empty? (cdr (world-processed-config-list w)) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION))]
-                  [else
-                   (letrec(
-                           (previousState (car (cdr (world-processed-config-list w)))))
+(define showPrev (lambda(w)
+                  (cond
+                    [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape and try again" "Notice" MSG-CAUTION)]
+                    [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION)]
+                    [else
+                     (let(
+                          (previousState (car (cdr (world-processed-config-list w)))))
                      
-                     (world (world-state-list w) (world-symbol-list w)
-                            (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                            (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                            (car (cdr previousState)) (world-button-list w) (world-input-list w)
-                            (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
+                       (world (world-state-list w) (world-symbol-list w)
+                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                              (car (cdr previousState)) (world-button-list w) (world-input-list w)
+                              (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
                         
                         
 
@@ -388,8 +500,8 @@
 
 (define BTN-HELP (button 70 30 "Help" "solid" (make-color 39 168 242) (make-color 39 168 242) 25 #f #f (posn 55 105) openHelp))
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 140) showNext))
-(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) goBack))
-(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) runProgram))
+(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) showPrev))
+(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) genCode))
 
 (define BTN-SIGMA-ADD (button 40 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 30 70) addSigma))
 (define BTN-SIGMA-CLEAR (button 40 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 80 70) clearSigma))
@@ -445,7 +557,7 @@
                                  (world-tape-position INIT-WORLD) (world-cur-rule INIT-WORLD) (sm-getstart fsm-machine)
                                  (world-button-list INIT-WORLD) (world-input-list INIT-WORLD) (world-processed-config-list INIT-WORLD)
                                  (world-unporcessed-config-list INIT-WORLD) (sm-getalphabet fsm-machine)
-                                 (msgWindow "Machine was Added to the GUI. You're almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                 (msgWindow "Machine was added to the GUI. You're almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
       [(ndfa) (println "TODO ADD NDFA")]
       [(pda) (println "TODO ADD PDA")]
       [(dfst) (println "TODO ADD DFST")])))
@@ -510,8 +622,7 @@
                                      (get-x (* deg-shift i) R)
                                      (get-y (* deg-shift i) R)
                                      (draw-states (cdr l) (add1 i) s))]))))
-          
-    ;;(println (* deg-shift current-index))
+         
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (world-state-list w) 0 
                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
@@ -566,7 +677,7 @@
    (text (string-upcase "Rules:") 24 "Black")
    (rectangle (/ WIDTH 11) BOTTOM "outline" "blue")))
 
-; create-gui-top: null -> image
+;; create-gui-top: null -> image
 ;; Creates the top of the gui layout
 (define (create-gui-top los)
   (overlay/align "left" "middle"
@@ -618,13 +729,13 @@
                               (rule-left-control))
                  (rectangle 200 HEIGHT "outline" "gray")))
 
-;;create-gui-alpha: list of alpha -> image
+;; create-gui-alpha: list of alpha -> image
 (define (create-gui-alpha loa)
   (overlay/align "left" "bottom"
                  (rectangle (/ WIDTH 11) (- HEIGHT BOTTOM) "outline" "blue")
                  (create-alpha-control loa)))
 
-;;create-alpha-control: list of alpha -> image
+;; create-alpha-control: list of alpha -> image
 (define (create-alpha-control loa)
   (overlay/align "right" "top"
                  (rectangle (/ WIDTH 11) (- (/ HEIGHT 2) 30) "outline" "blue")
@@ -836,7 +947,7 @@
 
 (big-bang
     INIT-WORLD
-  (name "FSM GUI (Early ALPHA)")
+  (name "FSM GUI ALPHA 2.0")
   (on-draw draw-world)
   (on-mouse process-mouse-event)
   (on-key process-key))
