@@ -32,12 +32,12 @@
 
 ;; This machine works
 (define M2 (make-dfa '(A B C)
-                       '(a b c)
-                       'A
-                       '(B C)
-                       (list '(A b C)
-                             '(A a B)
-                             '(B c A))))
+                     '(a b c)
+                     'A
+                     '(B C)
+                     (list '(A b C)
+                           '(A a B)
+                           '(B c A))))
 
 
 
@@ -161,92 +161,92 @@
 ;; addState: world -> world
 ;; Purpose: Adds a start state to the world
 (define addStart (lambda(w)
-                  (let
-                      ((start-state (string-trim(textbox-text(list-ref (world-input-list w) 2))))
-                       (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
+                   (let
+                       ((start-state (string-trim(textbox-text(list-ref (world-input-list w) 2))))
+                        (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref(world-input-list w) 2) 100))))
                     
-                    (cond
-                      [(equal? "" start-state) (redraw-world w)]
-                      [(and (null? (world-start-state w)) (ormap(lambda(x) (equal? (string->symbol start-state) x)) (world-state-list w)))
-                          (world (world-state-list w) (world-symbol-list w)
-                                 (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
-                                 (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                 (string->symbol start-state) (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                         [ (null? (world-start-state w))
-                           (world (cons (string->symbol start-state) (world-state-list w)) (world-symbol-list w)
-                                  (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
-                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                  (string->symbol start-state) (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                         [ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
-                           (world (world-state-list w) (world-symbol-list w)
-                                  (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
-                                  (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                  (string->symbol start-state) (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                         [else w]))))
+                     (cond
+                       [(equal? "" start-state) (redraw-world w)]
+                       [(and (null? (world-start-state w)) (ormap(lambda(x) (equal? (string->symbol start-state) x)) (world-state-list w)))
+                        (world (world-state-list w) (world-symbol-list w)
+                               (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                               (string->symbol start-state) (world-button-list w) new-input-list
+                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                       [ (null? (world-start-state w))
+                         (world (cons (string->symbol start-state) (world-state-list w)) (world-symbol-list w)
+                                (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                (string->symbol start-state) (world-button-list w) new-input-list
+                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                       [ (ormap (lambda (x) (equal? start-state x)) (world-state-list w))
+                         (world (world-state-list w) (world-symbol-list w)
+                                (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                                (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                (string->symbol start-state) (world-button-list w) new-input-list
+                                (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                       [else w]))))
 
 
 ;; replaceStart: world -> world
 ;; Purpose: Replaces the start state in the world
 (define replaceStart (lambda(w)
-                      (let
-                          ((start-state (string-trim(textbox-text(list-ref (world-input-list w) 2))))
-                           (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref (world-input-list w) 2) 100))))
-                        (cond
-                          [(equal? "" start-state) (redraw-world w)]
-                          [ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (world-state-list w))
-                               (world (world-state-list w) (world-symbol-list w)
-                                      (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
-                                      (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                      (string->symbol start-state) (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                             [else  (world (cons(string->symbol start-state) (world-state-list w)) (world-symbol-list w)
-                                           (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
-                                           (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                           (string->symbol start-state) (world-button-list w) new-input-list
-                                           (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
+                       (let
+                           ((start-state (string-trim(textbox-text(list-ref (world-input-list w) 2))))
+                            (new-input-list (list-set (world-input-list w) 2 (remove-text (list-ref (world-input-list w) 2) 100))))
+                         (cond
+                           [(equal? "" start-state) (redraw-world w)]
+                           [ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (world-state-list w))
+                             (world (world-state-list w) (world-symbol-list w)
+                                    (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                    (string->symbol start-state) (world-button-list w) new-input-list
+                                    (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                           [else  (world (cons(string->symbol start-state) (world-state-list w)) (world-symbol-list w)
+                                         (string->symbol start-state) (world-final-state-list w)  (world-rule-list w)
+                                         (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                         (string->symbol start-state) (world-button-list w) new-input-list
+                                         (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
 ;; addEnd: world -> world
 ;; Purpose: Adds an end state to the world
 (define addEnd (lambda(w)
-                (let
-                    ((end-state (string-trim (textbox-text(list-ref (world-input-list w) 3))))
-                     (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
-                  (cond
-                    [(equal? "" end-state) (redraw-world w)]
-                    [(ormap (lambda (x) (equal? x (string->symbol end-state))) (world-state-list w))
-                        (world (world-state-list w) (world-symbol-list w)
-                               (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
-                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                               (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                       [else   (world (cons (string->symbol end-state) (world-state-list w)) (world-symbol-list w)
-                                      (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
-                                      (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                      (world-cur-state w) (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
+                 (let
+                     ((end-state (string-trim (textbox-text(list-ref (world-input-list w) 3))))
+                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
+                   (cond
+                     [(equal? "" end-state) (redraw-world w)]
+                     [(ormap (lambda (x) (equal? x (string->symbol end-state))) (world-state-list w))
+                      (world (world-state-list w) (world-symbol-list w)
+                             (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
+                             (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                             (world-cur-state w) (world-button-list w) new-input-list
+                             (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                     [else   (world (cons (string->symbol end-state) (world-state-list w)) (world-symbol-list w)
+                                    (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
+                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                    (world-cur-state w) (world-button-list w) new-input-list
+                                    (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
 ;; rmvEnd: world -> world
 ;; Purpose: removes a end state from the world-final-state-list
 (define rmvEnd (lambda (w)
                  (let
-                    ((end-state (string-trim(textbox-text(list-ref (world-input-list w) 3))))
-                     (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
+                     ((end-state (string-trim(textbox-text(list-ref (world-input-list w) 3))))
+                      (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
                    (cond
                      [(equal? "" end-state) (redraw-world w)]
                      [(ormap (lambda(x) (equal? x (string->symbol end-state))) (world-state-list w))
-                        (world (world-state-list w) (world-symbol-list w)
-                               (world-start-state w) (remove (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
-                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                               (world-cur-state w) (world-button-list w) new-input-list
-                               (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
-                       [else   (world (cons (string->symbol end-state) (world-state-list w)) (world-symbol-list w)
-                                      (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
-                                      (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                      (world-cur-state w) (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
+                      (world (world-state-list w) (world-symbol-list w)
+                             (world-start-state w) (remove (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
+                             (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                             (world-cur-state w) (world-button-list w) new-input-list
+                             (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]
+                     [else   (world (cons (string->symbol end-state) (world-state-list w)) (world-symbol-list w)
+                                    (world-start-state w) (cons (string->symbol end-state) (world-final-state-list w)) (world-rule-list w)
+                                    (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                                    (world-cur-state w) (world-button-list w) new-input-list
+                                    (world-processed-config-list w) (world-unporcessed-config-list w) (world-alpha-list w) (world-error-msg w))]))))
 
 ;; addAlpha: world -> world
 ;; Purpose: Adds a letter to the worlds alpha-list
@@ -493,18 +493,18 @@
 ;; showPrev: world -> world
 ;; shows the previous state that the machine was in
 (define showPrev (lambda(w)
-                  (cond
-                    [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape and try again" "Notice" MSG-CAUTION)]
-                    [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION)]
-                    [else
-                     (let(
-                          (previousState (car (cdr (world-processed-config-list w)))))
+                   (cond
+                     [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape and try again" "Notice" MSG-CAUTION)]
+                     [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION)]
+                     [else
+                      (let(
+                           (previousState (car (cdr (world-processed-config-list w)))))
                      
-                       (world (world-state-list w) (world-symbol-list w)
-                              (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                              (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                              (car (cdr previousState)) (world-button-list w) (world-input-list w)
-                              (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
+                        (world (world-state-list w) (world-symbol-list w)
+                               (world-start-state w) (world-final-state-list w) (world-rule-list w)
+                               (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
+                               (car (cdr previousState)) (world-button-list w) (world-input-list w)
+                               (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-alpha-list w) (world-error-msg w)))])))
                         
                         
 
@@ -577,17 +577,27 @@
                             (on-draw draw-world)
                             (on-mouse process-mouse-event)
                             (on-key process-key)))))
+
+    (cond
+      [(symbol? fsm-machine)
+       (case fsm-machine
+         [(dfa) (println "TODO ADD DFA")]
+         [(ndfa) (println "TODO ADD NDFA")]
+         [(pda) (println "TODO ADD PDA")]
+         [(dfst) (println "TODO ADD DFST")]
+         [else (error (format "~s is not a valid machine type" fsm-machine))])]
+      [else
     
-    (case (sm-type fsm-machine)
-      [(dfa) (run-program (world (sm-getstates fsm-machine) (world-symbol-list INIT-WORLD) (sm-getstart fsm-machine)
-                                 (sm-getfinals fsm-machine) (reverse (sm-getrules fsm-machine)) (world-sigma-list INIT-WORLD)
-                                 (world-tape-position INIT-WORLD) (world-cur-rule INIT-WORLD) (sm-getstart fsm-machine)
-                                 (world-button-list INIT-WORLD) (world-input-list INIT-WORLD) (world-processed-config-list INIT-WORLD)
-                                 (world-unporcessed-config-list INIT-WORLD) (sm-getalphabet fsm-machine)
-                                 (msgWindow "Machine was added to the GUI. You're almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
-      [(ndfa) (println "TODO ADD NDFA")]
-      [(pda) (println "TODO ADD PDA")]
-      [(dfst) (println "TODO ADD DFST")])))
+       (case (sm-type fsm-machine)
+         [(dfa) (run-program (world (sm-getstates fsm-machine) (world-symbol-list INIT-WORLD) (sm-getstart fsm-machine)
+                                    (sm-getfinals fsm-machine) (reverse (sm-getrules fsm-machine)) (world-sigma-list INIT-WORLD)
+                                    (world-tape-position INIT-WORLD) (world-cur-rule INIT-WORLD) (sm-getstart fsm-machine)
+                                    (world-button-list INIT-WORLD) (world-input-list INIT-WORLD) (world-processed-config-list INIT-WORLD)
+                                    (world-unporcessed-config-list INIT-WORLD) (sm-getalphabet fsm-machine)
+                                    (msgWindow "Machine was added to the GUI. You're almost done. Please do the following: 1)  Add variables to the Tape Input. ~n 2)  Press GenCode." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+         [(ndfa) (println "TODO ADD NDFA")]
+         [(pda) (println "TODO ADD PDA")]
+         [(dfst) (println "TODO ADD DFST")])])))
   
 
 
