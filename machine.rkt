@@ -18,3 +18,8 @@
 ;; - alpha-list { lis-of-symbols }: A list comtaining the machines alphabet 
 ;; - type { Symbol }: Represents the type of machine ex: (dfa, ndfa, pda, ...)
 (struct machine ([state-list #:mutable] [start-state #:mutable] [final-state-list #:mutable] [rule-list #:mutable] [sigma-list #:mutable] [alpha-list #:mutable] type) #:transparent)
+
+
+;; pda-machine: A structure that is a subtype of machine
+;; - stack-alpha-list { list-of-symbols }: TODO: discription
+(struct pda-machine machine ([stack-alpha-list #:mutable]))
