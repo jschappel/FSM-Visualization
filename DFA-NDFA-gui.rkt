@@ -27,7 +27,7 @@
 (define INIT-SIGMA '(a b c b))
 (define INIT-CURRENT 'A)
 (define INIT-ALPHA '(a b c))
-;; This machine does not work
+
 (define M1 (make-dfa INIT-STATES INIT-ALPHA INIT-START INIT-FINALS INIT-RULES))
 
 ;; This machine works
@@ -315,35 +315,6 @@
                        (begin
                          (set-machine-sigma-list! (world-fsm-machine w) '())
                          (create-new-world-input w new-input-list)))))
-                      
-
-
-;; runProgram: world -> world
-;; Purpose: creates the machiene, checks the values for errors, then either returns the error or generates the code.
-#|
-(define runProgram (lambda (w)
-                     (let
-                         ((machine-check (check-machine  (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa)))
-                       (cond
-                         [(not (equal? (check-machine  (world-state-list w) (world-alpha-list w) (world-final-state-list w) (world-rule-list w) (world-start-state w) 'dfa) true))
-                          (redraw-world-with-msg w "TODO: ADD check-machine errors here!" "Error" MSG-ERROR)]
-                         ;; Check if sigma was filled in if so then we are all good!
-                         [(empty? (world-sigma-list w)) (redraw-world-with-msg w "Your Sigma list is empty! Please make sure there are variables in your Sigma List and then press Gen Code again." "Error" MSG-ERROR)]
-                         [else
-                          (let (;; machine: Since the machine passed the error test above. We will now construct it
-                                (unprocessed-list (sm-showtransitions (make-dfa (world-state-list w)
-                                                                                (world-alpha-list w)
-                                                                                (world-start-state w)
-                                                                                (world-final-state-list w)
-                                                                                (world-rule-list w)) (world-sigma-list w))))
-                           
-                            (world (world-state-list w) (world-symbol-list w)
-                                   (world-start-state w) (world-final-state-list w) (world-rule-list w)
-                                   (world-sigma-list w) (world-tape-position w) (world-cur-rule w)
-                                   (world-start-state w) (world-button-list w) (world-input-list w)
-                                   (list (car unprocessed-list)) (cdr unprocessed-list) (world-alpha-list w)
-                                   (msgWindow "Machine Was successfully built!. To show the machine work please press the buttons: Next and Prev." "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]))))
-|#
 
 
 ;; genCode: world -> world
@@ -421,18 +392,31 @@
 
                     (cond
                       [(equal? #t (check-machine (machine-state-list fsm-machine) (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
-                       (begin
-                         (write-to-file
-                          "fsmGUIFunctions.rkt"
-                          (construct-machine
-                           (machine-state-list fsm-machine)
-                           (machine-start-state fsm-machine)
-                           (machine-final-state-list fsm-machine)
-                           (machine-rule-list fsm-machine)
-                           (machine-alpha-list fsm-machine)
-                           (machine-type fsm-machine))
-                          #t)
-                         (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success" MSG-SUCCESS))]
+                       (let (
+                             (fsm-machine (world-fsm-machine w))
+                             (unprocessed-list (sm-showtransitions (make-dfa (machine-state-list fsm-machine)
+                                                                             (machine-alpha-list fsm-machine)
+                                                                             (machine-start-state fsm-machine)
+                                                                             (machine-final-state-list fsm-machine)
+                                                                             (machine-rule-list fsm-machine))
+                                                                   (machine-sigma-list fsm-machine))))
+                         (begin
+                           (write-to-file
+                            "fsmGUIFunctions.rkt"
+                            (construct-machine
+                             (machine-state-list fsm-machine)
+                             (machine-start-state fsm-machine)
+                             (machine-final-state-list fsm-machine)
+                             (machine-rule-list fsm-machine)
+                             (machine-alpha-list fsm-machine)
+                             (machine-type fsm-machine))
+                            #t)
+               
+                           (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
+                                  (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
+                                  (list (car unprocessed-list)) (cdr unprocessed-list)
+                                  (msgWindow (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))]
+
                       [else
                        (begin
                          (write-to-file
@@ -445,7 +429,7 @@
                            (machine-alpha-list fsm-machine)
                            (machine-type fsm-machine))
                           #f)
-                         (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Error" MSG-ERROR))]))))
+                         (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory)) "Please fix the erros and press Gen Code again.") "Error" MSG-ERROR))]))))
                       
 
                   
@@ -471,7 +455,7 @@
                             [(eq? nextState 'reject)
                              (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
                             [else
-                             (world (world-fsm-machine) (world-tape-position w) (world-cur-rule w)
+                             (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
                                     (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w))]))])])))
 
@@ -580,9 +564,9 @@
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "dfa added" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
-      [(ndfa) (println "TODO ADD NDFA")]
-      [(pda) (println "TODO ADD PDA")]
-      [(dfst) (println "TODO ADD DFST")])])))
+         [(ndfa) (println "TODO ADD NDFA")]
+         [(pda) (println "TODO ADD PDA")]
+         [(dfst) (println "TODO ADD DFST")])])))
   
 
 
@@ -934,9 +918,6 @@
       [else w])))
 
 
-
-
-
 ;; ----- world redrawing functions below -----
 
 ;; create-new-world-input: world list-of-input-fields -> world
@@ -963,12 +944,3 @@
   (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
          (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world)
          (msgWindow msg-body msg-header (posn (/ WIDTH 2) (/ HEIGHT 2)) msg-color)))
-  
-#|
-(big-bang
-    INIT-WORLD
-  (name SCENE-TITLE)
-  (on-draw draw-world)
-  (on-mouse process-mouse-event)
-  (on-key process-key))
-|#

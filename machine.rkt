@@ -2,7 +2,7 @@
 
 ;; ------- machine.rkt -------
 ;; This file contains the structure for a fsm machine (dfa, ndfa, pda, 
-;; Written by: Joshua Schappel 8/9/2019
+;; Written by: Joshua Schappel 8/15/2019
 
 ;; export necessary files
 (provide
@@ -18,5 +18,3 @@
 ;; - alpha-list { lis-of-symbols }: A list comtaining the machines alphabet 
 ;; - type { Symbol }: Represents the type of machine ex: (dfa, ndfa, pda, ...)
 (struct machine ([state-list #:mutable] [start-state #:mutable] [final-state-list #:mutable] [rule-list #:mutable] [sigma-list #:mutable] [alpha-list #:mutable] type) #:transparent)
-
-;;(define m (machine 'A 'B 'C 'D 'E 'F 'G))
