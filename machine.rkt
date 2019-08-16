@@ -6,7 +6,8 @@
 
 ;; export necessary files
 (provide
- (struct-out machine))
+ (struct-out machine)
+ (struct-out pda-machine))
 
 ;; machine A structure that represents a fsm machine. This structure can represent any type of machine
 ;; - state-list { list-of-symbols }: A list of states that the machine can be in
