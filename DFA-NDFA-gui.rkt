@@ -668,11 +668,18 @@
 ;; create-gui-bottom: list-of-rules -> image
 ;; Purpose: Creates the bottom of the gui layout
 (define (create-gui-bottom lor)
-  (overlay/align "left" "middle"
-                 (align-items
-                  (rules-bottom-label)
-                  (lor-bottom-label lor))
-                 (rectangle WIDTH BOTTOM "outline" "transparent")))
+  (cond
+    [(empty? lor) (overlay/align "left" "middle"
+                                 (align-items
+                                  (rules-bottom-label)
+                                  (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "red"))
+                                 (rectangle WIDTH BOTTOM "outline" "transparent"))]
+    [else 
+     (overlay/align "left" "middle"
+                    (align-items
+                     (rules-bottom-label)
+                     (lor-bottom-label lor 80))
+                    (rectangle WIDTH BOTTOM "outline" "transparent"))]))
 
 
 ;; rules-bottom-label: null -> image
@@ -700,7 +707,7 @@
 
 ;; lor-bottom-label: list-of-rules -> image
 ;; Purpose: The label for the list of rules
-(define (lor-bottom-label lor)
+(define (lor-bottom-label lor rectWidth)
   (letrec (
            ;; inner-list-2-rules: tuple-list -> string
            ;; Purpose: Given a tuple will format it into a string to be displayed on the gui
@@ -716,10 +723,45 @@
                               [(empty? lor) ""]
                               [else (string-append "(" (inner-list-2-string (car lor) "") (list-2-string (cdr lor)))])))
 
-           (text-str (list-2-string (reverse lor)))
-           )
-    (scale-text-to-image (text text-str 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)))
+           (new-list-2-string (lambda (lor rectWidth)
+                                (cond
+                                  [(empty? lor) null]
+                                  [(equal? 1 (length lor)) (rule-box (inner-list-2-string-2 (car lor) "") 24 rectWidth 1)]
+                                  [(beside
+                                    (rule-box (inner-list-2-string-2 (car lor) "") 24 rectWidth 1)
+                                    (new-list-2-string (cdr lor) rectWidth))])))
 
+
+           (inner-list-2-string-2 (lambda (tup accum)
+                                    (cond
+                                      [(empty? tup) (string-append "(" (string-append (substring accum 1 (string-length accum)) ")"))]
+                                      [else (inner-list-2-string-2 (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
+           
+
+           ;; rule-box: string -> image
+           ;; Purpose: given a string, will overlay the text onto a image
+           (rule-box (lambda (a-string fnt-size rectWidth scaler)
+                       (let ((t (scale scaler (text a-string fnt-size "Black")))
+                             (under-image (rectangle rectWidth BOTTOM "outline" "red")))
+                         (cond
+                           [(> (image-width t) (image-width under-image)) (println "yo") (rule-box a-string fnt-size rectWidth (- scaler .2))]
+                           [else
+                            (println scaler)
+                            (overlay
+                             (scale scaler t)
+                             (rectangle rectWidth BOTTOM "outline" "red"))])))))
+
+           
+
+    ;;(text-str (list-2-string (reverse lor)))
+    
+    ;;(scale-text-to-image (text text-str 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)
+    (cond
+      [(> (image-width (new-list-2-string (reverse lor) 100)) (image-width (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "red"))) (lor-bottom-label lor (- rectWidth 20))]
+      [else
+       (overlay
+        (new-list-2-string (reverse lor) rectWidth)
+        (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "red"))])))
 
    
 ;; create-gui-left: null -> image
