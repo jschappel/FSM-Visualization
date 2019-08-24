@@ -722,6 +722,7 @@
                             (cond
                               [(empty? lor) ""]
                               [else (string-append "(" (inner-list-2-string (car lor) "") (list-2-string (cdr lor)))])))
+           
 
            (new-list-2-string (lambda (lor rectWidth)
                                 (cond
@@ -740,16 +741,11 @@
 
            ;; rule-box: string -> image
            ;; Purpose: given a string, will overlay the text onto a image
-           (rule-box (lambda (a-string fnt-size rectWidth scaler)
-                       (let ((t (scale scaler (text a-string fnt-size "Black")))
-                             (under-image (rectangle rectWidth BOTTOM "outline" "red")))
-                         (cond
-                           [(> (image-width t) (image-width under-image)) (println "yo") (rule-box a-string fnt-size rectWidth (- scaler .2))]
-                           [else
-                            (println scaler)
+           (rule-box (lambda (a-string fnt-size)
+                       (let ((under-image (rectangle (/ (- (- WIDTH (/ WIDTH 11)) 200)10) BOTTOM "outline" "red")))
                             (overlay
-                             (scale scaler t)
-                             (rectangle rectWidth BOTTOM "outline" "red"))])))))
+                             (text a-string fnt-size "Black")
+                             (rectangle rectWidth BOTTOM "outline" "red"))))))
 
            
 
