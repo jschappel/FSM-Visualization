@@ -528,7 +528,7 @@
 (define BTN-HELP (button 70 30 "Help" "solid" (make-color 39 168 242) (make-color 39 168 242) 25 #f #f (posn 55 105) openHelp))
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 140) showNext))
 (define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) showPrev))
-(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) genCode))
+(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) runProgram))
 
 (define BTN-SIGMA-ADD (button 40 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 30 70) addSigma))
 (define BTN-SIGMA-CLEAR (button 40 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 80 70) clearSigma))
