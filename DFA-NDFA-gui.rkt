@@ -10,6 +10,7 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 (define SCENE-TITLE "FSM GUI ALPHA 2.0")
+(define RULE-INDEX 0) ;; TEMP!!!!!! ADD TO MACHINE
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -49,7 +50,7 @@
 (define RULE-LIST '()) ;; The list of rules that the machine must follow
 (define SIGMA-LIST '()) ;; The list of sigma for the mahcine
 (define TAPE-POSITION 0) ;; The current position on the tape
-(define CURRENT-RULE null) ;; The current rule that the machine is following
+(define CURRENT-RULE '(null null null)) ;; The current rule that the machine is following
 (define CURRENT-STATE null) ;; The current state that the machine is in
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
@@ -472,6 +473,24 @@
                         (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
                                (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w)))])))
+
+;; scrollbarRight: world -> world
+;; Purpose: moves the scroll bar over 1 place to the right
+(define scrollbarRight (lambda (w)
+                         (cond
+                           [(< (length (list-tail (machine-rule-list (world-fsm-machine w)) (add1 RULE-INDEX))) 10) (redraw-world w)]
+                           [else (begin
+                                   (set! RULE-INDEX (+ 1 RULE-INDEX))
+                                   (redraw-world w))])))
+
+;; scrollbarLeft: world -> world
+;; Purpose: moves the scroll bar over 1 place to the left
+(define scrollbarLeft (lambda (w)
+                        (cond
+                          [(< (- RULE-INDEX 1) 0)(redraw-world w)]
+                          [else (begin
+                                  (set! RULE-INDEX (- RULE-INDEX 1))
+                                  (redraw-world w))])))
                         
                         
 
@@ -490,6 +509,9 @@
 
 (define BTN-ADD-RULES (button 70 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 25)) addRule))
 (define BTN-REMOVE-RULES (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 25)) removeRule))
+(define BTN-SCROLL-LEFT-RULES (button 30 BOTTOM "<" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 36 #f #f (posn 125 (- HEIGHT 37)) scrollbarLeft))
+(define BTN-SCROLL-RIGHT-RULES (button 30 BOTTOM ">" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 36 #f #f (posn (- WIDTH 215) (- HEIGHT 37)) scrollbarRight))
+
 
 
 (define BTN-HELP (button 70 30 "Help" "solid" (make-color 39 168 242) (make-color 39 168 242) 25 #f #f (posn 55 105) openHelp))
@@ -508,7 +530,8 @@
                           BTN-ADD-RULES BTN-REMOVE-RULES
                           BTN-RUN BTN-NEXT BTN-PREV
                           BTN-SIGMA-ADD BTN-SIGMA-CLEAR
-                          BTN-HELP))
+                          BTN-HELP BTN-SCROLL-LEFT-RULES
+                          BTN-SCROLL-RIGHT-RULES))
 
 
 
@@ -632,7 +655,7 @@
         (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                                                                                                   (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w))) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                                                                                                   (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                                                                 (draw-button-list (world-button-list w)
                                                                                                                                                                                                                                   (draw-input-list (world-input-list w)
                                                                                                                                                                                                                                                    (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
@@ -641,7 +664,7 @@
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                        (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                     (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                 (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w))) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                 (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) ) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                               (draw-button-list (world-button-list w)
                                                                                                                                                 (draw-input-list (world-input-list w)
                                                                                                                                                                  (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
@@ -665,20 +688,20 @@
     (scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
 
 
-;; create-gui-bottom: list-of-rules -> image
+;; create-gui-bottom: list-of-rules rule -> image
 ;; Purpose: Creates the bottom of the gui layout
-(define (create-gui-bottom lor)
+(define (create-gui-bottom lor cur-rule)
   (cond
     [(empty? lor) (overlay/align "left" "middle"
                                  (align-items
                                   (rules-bottom-label)
-                                  (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "red"))
+                                  (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue"))
                                  (rectangle WIDTH BOTTOM "outline" "transparent"))]
     [else 
      (overlay/align "left" "middle"
                     (align-items
                      (rules-bottom-label)
-                     (lor-bottom-label lor 80))
+                     (lor-bottom-label lor 83 cur-rule))
                     (rectangle WIDTH BOTTOM "outline" "transparent"))]))
 
 
@@ -705,61 +728,50 @@
    item1
    item2))
 
-;; lor-bottom-label: list-of-rules -> image
+;; lor-bottom-label: list-of-rules int -> image
 ;; Purpose: The label for the list of rules
-(define (lor-bottom-label lor rectWidth)
-  (letrec (
-           ;; inner-list-2-rules: tuple-list -> string
-           ;; Purpose: Given a tuple will format it into a string to be displayed on the gui
-           (inner-list-2-string (lambda (tup accum)
-                                  (cond
-                                    [(empty? tup) (string-append (substring accum 1 (string-length accum)) ") ")]
-                                    [else (inner-list-2-string (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
-
-           ;; list-2-string: list-of-rules -> string
-           ;; Purpose: formates a list of rules to be displayed on the gui
-           (list-2-string (lambda (lor)
+(define (lor-bottom-label lor rectWidth cur-rule)
+  (letrec (;; list-2-img: list-of-rules int int -> image
+           ;; Purpose: Converts the list of rules into image that overlays the rul in the center
+           (list-2-img (lambda (lor rectWidth accum)
                             (cond
-                              [(empty? lor) ""]
-                              [else (string-append "(" (inner-list-2-string (car lor) "") (list-2-string (cdr lor)))])))
-           
+                              [(>= accum 10) empty-image]
+                              [(empty? lor) null]
+                              [(equal? 1 (length lor)) (rule-box (inner-list-2-img (car lor) "") 18)]
+                              [(beside
+                                (rule-box (inner-list-2-img (car lor) "") 18)
+                                (list-2-img (cdr lor) rectWidth (add1 accum)))])))
 
-           (new-list-2-string (lambda (lor rectWidth)
-                                (cond
-                                  [(empty? lor) null]
-                                  [(equal? 1 (length lor)) (rule-box (inner-list-2-string-2 (car lor) "") 24 rectWidth 1)]
-                                  [(beside
-                                    (rule-box (inner-list-2-string-2 (car lor) "") 24 rectWidth 1)
-                                    (new-list-2-string (cdr lor) rectWidth))])))
-
-
-           (inner-list-2-string-2 (lambda (tup accum)
-                                    (cond
-                                      [(empty? tup) (string-append "(" (string-append (substring accum 1 (string-length accum)) ")"))]
-                                      [else (inner-list-2-string-2 (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
+           ;; inner-list-2-img: rule (tuple) string -> image
+           ;; Purpose: Converts a rule into an image were the rule is overlayed on an image
+           (inner-list-2-img (lambda (tup accum)
+                                  (cond
+                                    [(empty? tup) (string-append "(" (string-append (substring accum 1 (string-length accum)) ")"))]
+                                    [else (inner-list-2-img (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
            
 
            ;; rule-box: string -> image
            ;; Purpose: given a string, will overlay the text onto a image
            (rule-box (lambda (a-string fnt-size)
-                       (let ((under-image (rectangle (/ (- (- WIDTH (/ WIDTH 11)) 200)10) BOTTOM "outline" "red")))
-                            (overlay
-                             (text a-string fnt-size "Black")
-                             (rectangle rectWidth BOTTOM "outline" "red"))))))
-
-           
-
-    ;;(text-str (list-2-string (reverse lor)))
-    
-    ;;(scale-text-to-image (text text-str 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue") 1)
+                       (cond
+                         [(equal? (inner-list-2-img cur-rule "") a-string)
+                          (overlay
+                           (text a-string fnt-size "red")
+                           (rectangle rectWidth BOTTOM "outline" "grey"))]
+                         [else
+                          (overlay
+                           (text a-string fnt-size "Black")
+                           (rectangle rectWidth BOTTOM "outline" "grey"))]))))
     (cond
-      [(> (image-width (new-list-2-string (reverse lor) 100)) (image-width (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "red"))) (lor-bottom-label lor (- rectWidth 20))]
-      [else
-       (overlay
-        (new-list-2-string (reverse lor) rectWidth)
-        (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "red"))])))
+      ;; We will only render 10 rules at a time. Make sure this happens!!!!
+      [(>= (length lor) 10) (overlay
+                             (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")
+                             (list-2-img (list-tail (reverse lor) RULE-INDEX) rectWidth 0))]
+      [else (overlay
+             (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")
+             (list-2-img (reverse lor) rectWidth 0))])))
 
-   
+
 ;; create-gui-left: null -> image
 ;; Purpose: creates the left conrol panel for the 
 (define (create-gui-left)
