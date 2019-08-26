@@ -10,7 +10,6 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 (define SCENE-TITLE "FSM GUI ALPHA 2.0")
-(define RULE-INDEX 0) ;; TEMP!!!!!! ADD TO MACHINE
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -55,6 +54,7 @@
 (define PROCESSED-CONFIG-LIST '()) ;; TODO
 (define UNPROCESSED-CONFIG-LIST '()) ;; TODO
 (define ALPHA-LIST '()) ;; TODO
+(define INIT-INDEX 0) ;; The initail index of the scrollbar
 
 ;; COLORS FOR GUI
 (define CONTROLLER-BUTTON-COLOR (make-color 48 63 159))
@@ -77,8 +77,9 @@
 ;; - processed-config-list:
 ;; - unprocessed-config-list:
 ;; - error msg: A msgWindow structure that will be rendered on the screen if not null.
+;; - scroll-bar-index: An integer that represents the first position in the rule list to be rendered on the screen.
 ;; - TODO stack list and stack alphabet
-(struct world (fsm-machine tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list error-msg) #:transparent)
+(struct world (fsm-machine tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list error-msg scroll-bar-index) #:transparent)
 
 ;; ***** BUTTON FUCTIONS BELOW *****
 
@@ -161,20 +162,20 @@
                           (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                           (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                  (string->symbol start-state) (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w)))]
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (null? (machine-start-state (world-fsm-machine w)))
                          (begin
                            (set-machine-state-list! (world-fsm-machine w) (cons (string->symbol start-state) (machine-state-list (world-fsm-machine w))))
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                   (string->symbol start-state) (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w)))]
+                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (ormap (lambda (x) (equal? start-state x)) (machine-state-list (world-fsm-machine w)))
                          (begin
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                   (string->symbol start-state) (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w)(world-error-msg w)))]
+                                  (world-processed-config-list w) (world-unporcessed-config-list w)(world-error-msg w) (world-scroll-bar-index w)))]
                        [else w]))))
 
 
@@ -192,7 +193,7 @@
                                (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                                (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                       (string->symbol start-state) (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w)))]
+                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                            
                            [else
                             (begin
@@ -200,7 +201,7 @@
                               (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                               (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                      (string->symbol start-state) (world-button-list w) new-input-list
-                                     (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w)))]))))
+                                     (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]))))
 
 ;; addEnd: world -> world
 ;; Purpose: Adds an end state to the world
@@ -458,7 +459,7 @@
                             [else
                              (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
-                                    (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w))]))])])))
+                                    (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w) (world-scroll-bar-index w))]))])])))
 
 ;; showPrev: world -> world
 ;; shows the previous state that the machine was in
@@ -472,25 +473,29 @@
                      
                         (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
-                               (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w)))])))
+                               (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w) (world-scroll-bar-index w)))])))
 
 ;; scrollbarRight: world -> world
 ;; Purpose: moves the scroll bar over 1 place to the right
 (define scrollbarRight (lambda (w)
-                         (cond
-                           [(< (length (list-tail (machine-rule-list (world-fsm-machine w)) (add1 RULE-INDEX))) 10) (redraw-world w)]
-                           [else (begin
-                                   (set! RULE-INDEX (+ 1 RULE-INDEX))
-                                   (redraw-world w))])))
+                         (let ((index (world-scroll-bar-index w)))
+                           (cond
+                             [(< (length (list-tail (machine-rule-list (world-fsm-machine w)) (add1 index))) 10) (redraw-world w)]
+                             [else
+
+                              (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w) (world-cur-state w) (world-button-list w)
+                                     (world-input-list w) (world-processed-config-list w)(world-unporcessed-config-list w) (world-error-msg w) (add1 index))]))))
 
 ;; scrollbarLeft: world -> world
 ;; Purpose: moves the scroll bar over 1 place to the left
 (define scrollbarLeft (lambda (w)
-                        (cond
-                          [(< (- RULE-INDEX 1) 0)(redraw-world w)]
-                          [else (begin
-                                  (set! RULE-INDEX (- RULE-INDEX 1))
-                                  (redraw-world w))])))
+                        (let ((index (world-scroll-bar-index w)))
+                          (cond
+                            [(< (- index 1) 0)(redraw-world w)]
+                            [else
+
+                             (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w) (world-cur-state w) (world-button-list w)
+                                    (world-input-list w) (world-processed-config-list w)(world-unporcessed-config-list w) (world-error-msg w) (sub1 index))]))))
                         
                         
 
@@ -553,8 +558,8 @@
 ;; Purpose: Creates the initail world with the given machine
 (define (create-init-world m . msg)
   (cond
-    [(null? msg) (world m TAPE-POSITION CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST null)]
-    [else (world m TAPE-POSITION CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST (car msg))]))
+    [(null? msg) (world m TAPE-POSITION CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST null INIT-INDEX)]
+    [else (world m TAPE-POSITION CURRENT-RULE CURRENT-STATE BUTTON-LIST INPUT-LIST PROCESSED-CONFIG-LIST UNPROCESSED-CONFIG-LIST (car msg) INIT-INDEX)]))
 
 
 
@@ -655,7 +660,7 @@
         (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                                                                                                   (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                                                                                                   (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                                                                 (draw-button-list (world-button-list w)
                                                                                                                                                                                                                                   (draw-input-list (world-input-list w)
                                                                                                                                                                                                                                                    (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
@@ -664,7 +669,7 @@
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                        (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                     (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                 (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) ) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                 (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                               (draw-button-list (world-button-list w)
                                                                                                                                                 (draw-input-list (world-input-list w)
                                                                                                                                                                  (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
@@ -688,9 +693,9 @@
     (scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
 
 
-;; create-gui-bottom: list-of-rules rule -> image
+;; create-gui-bottom: list-of-rules rule int -> image
 ;; Purpose: Creates the bottom of the gui layout
-(define (create-gui-bottom lor cur-rule)
+(define (create-gui-bottom lor cur-rule scroll-index)
   (cond
     [(empty? lor) (overlay/align "left" "middle"
                                  (align-items
@@ -701,7 +706,7 @@
      (overlay/align "left" "middle"
                     (align-items
                      (rules-bottom-label)
-                     (lor-bottom-label lor 83 cur-rule))
+                     (lor-bottom-label lor 83 cur-rule scroll-index))
                     (rectangle WIDTH BOTTOM "outline" "transparent"))]))
 
 
@@ -728,26 +733,26 @@
    item1
    item2))
 
-;; lor-bottom-label: list-of-rules int -> image
+;; lor-bottom-label: list-of-rules int rule int -> image
 ;; Purpose: The label for the list of rules
-(define (lor-bottom-label lor rectWidth cur-rule)
+(define (lor-bottom-label lor rectWidth cur-rule scroll-index)
   (letrec (;; list-2-img: list-of-rules int int -> image
            ;; Purpose: Converts the list of rules into image that overlays the rul in the center
            (list-2-img (lambda (lor rectWidth accum)
-                            (cond
-                              [(>= accum 10) empty-image]
-                              [(empty? lor) null]
-                              [(equal? 1 (length lor)) (rule-box (inner-list-2-img (car lor) "") 18)]
-                              [(beside
-                                (rule-box (inner-list-2-img (car lor) "") 18)
-                                (list-2-img (cdr lor) rectWidth (add1 accum)))])))
+                         (cond
+                           [(>= accum 10) empty-image]
+                           [(empty? lor) null]
+                           [(equal? 1 (length lor)) (rule-box (inner-list-2-img (car lor) "") 18)]
+                           [(beside
+                             (rule-box (inner-list-2-img (car lor) "") 18)
+                             (list-2-img (cdr lor) rectWidth (add1 accum)))])))
 
            ;; inner-list-2-img: rule (tuple) string -> image
            ;; Purpose: Converts a rule into an image were the rule is overlayed on an image
            (inner-list-2-img (lambda (tup accum)
-                                  (cond
-                                    [(empty? tup) (string-append "(" (string-append (substring accum 1 (string-length accum)) ")"))]
-                                    [else (inner-list-2-img (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
+                               (cond
+                                 [(empty? tup) (string-append "(" (string-append (substring accum 1 (string-length accum)) ")"))]
+                                 [else (inner-list-2-img (cdr tup) (string-append accum " " (symbol->string (car tup))))])))
            
 
            ;; rule-box: string -> image
@@ -766,7 +771,7 @@
       ;; We will only render 10 rules at a time. Make sure this happens!!!!
       [(>= (length lor) 10) (overlay
                              (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")
-                             (list-2-img (list-tail (reverse lor) RULE-INDEX) rectWidth 0))]
+                             (list-2-img (list-tail (reverse lor) scroll-index) rectWidth 0))]
       [else (overlay
              (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")
              (list-2-img (reverse lor) rectWidth 0))])))
@@ -935,7 +940,8 @@
           (cond
             [(equal? (exit-pressed? x y (world-error-msg w) WIDTH HEIGHT) #t) (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                                                                      (world-cur-state w) (world-button-list w) (world-input-list w)
-                                                                                     (world-processed-config-list w) (world-unporcessed-config-list w) null)]
+                                                                                     (world-processed-config-list w) (world-unporcessed-config-list w) null
+                                                                                     (world-scroll-bar-index w))]
             [else (redraw-world w)])]
          [else (begin
                  (define buttonPressed (check-button-list (world-button-list w) x y))
@@ -974,23 +980,23 @@
 ;; Purpose: Creates a new world to handle the list-of-input-fields changes
 (define (create-new-world-input a-world loi)
   (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         loi (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-error-msg a-world)))
+         loi (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-error-msg a-world) (world-scroll-bar-index a-world)))
 
 ;; create-new-world-button: world list-of-button-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-button-fields changes
 (define (create-new-world-button a-world lob)
   (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) lob
-         (world-input-list a-world) (world-processed-config-list a-world) (world-unporcessed-config-list a-world) (world-error-msg a-world)))
+         (world-input-list a-world) (world-processed-config-list a-world) (world-unporcessed-config-list a-world) (world-error-msg a-world) (world-scroll-bar-index a-world)))
 
 ;; redraw-world: world -> world
 ;; redraws the same world as before
 (define (redraw-world a-world)
   (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
-         (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-error-msg a-world)))
+         (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-error-msg a-world) (world-scroll-bar-index a-world)))
 
 ;; redraw-world-with-msg: world string string color -> world
 ;; Purpose: redraws the same world with a message
 (define (redraw-world-with-msg a-world msg-body msg-header msg-color)
   (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
          (world-input-list a-world) (world-processed-config-list a-world)(world-unporcessed-config-list a-world)
-         (msgWindow msg-body msg-header (posn (/ WIDTH 2) (/ HEIGHT 2)) msg-color)))
+         (msgWindow msg-body msg-header (posn (/ WIDTH 2) (/ HEIGHT 2)) msg-color) (world-scroll-bar-index a-world)))
