@@ -414,10 +414,11 @@
                              (machine-type fsm-machine))
                             #t)
                
-                           (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
+                           (world (world-fsm-machine w) (world-tape-position w) (getCurRule (machine-rule-list fsm-machine) (list (car unprocessed-list)) (cdr unprocessed-list))
                                   (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
                                   (list (car unprocessed-list)) (cdr unprocessed-list)
-                                  (msgWindow (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))]
+                                  (msgWindow (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
+                                  (world-scroll-bar-index w))))]
 
                       [else
                        (begin
@@ -432,7 +433,21 @@
                            (machine-type fsm-machine))
                           #f)
                          (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory)) "Please fix the erros and press Gen Code again.") "Error" MSG-ERROR))]))))
-                      
+
+
+
+;; getCurRule: list-of-rules processed-list unprocessed-list -> rule
+;; Purpose: get the current rule that the machine is following
+(define getCurRule (lambda (lor pl upl)
+                     (let ((transitions (append pl upl))
+                           (prev-rule (cadr (last pl)))
+                           (tran-alpha (if (empty? (car (last pl))) 'empty (caar (last pl)))) ;; see if there is a remaining alpha...
+                           (next-rule (if (list? (car upl)) (cadr (car upl)) 'empty))) ;; See if the next rule is a symbol if so dont cadr the symbol...
+                    
+                       (list prev-rule tran-alpha next-rule))))
+                       
+
+
 
                   
 
@@ -457,7 +472,7 @@
                             [(eq? nextState 'reject)
                              (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
                             [else
-                             (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
+                             (world (world-fsm-machine w) (world-tape-position w) (getCurRule (machine-rule-list (world-fsm-machine w)) (reverse (append (list nextState) (world-processed-config-list w))) transitions)
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
                                     (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w) (world-scroll-bar-index w))]))])])))
 
@@ -471,7 +486,7 @@
                       (let(
                            (previousState (car (cdr (world-processed-config-list w)))))
                      
-                        (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
+                        (world (world-fsm-machine w) (world-tape-position w) (getCurRule (machine-rule-list (world-fsm-machine w)) (reverse (cdr (world-processed-config-list w))) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)))
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
                                (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w) (world-scroll-bar-index w)))])))
 
