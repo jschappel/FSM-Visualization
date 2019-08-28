@@ -132,6 +132,10 @@
                        (case s
                          [(DEAD) 'ds]
                          [(EMP) 'e]
+                         [(BLANK) '_]
+                         [(LEFT) 'L]
+                         [(LM) '@]
+                         [(RIGHT) 'R]
                          [else s])))
 
 ;; addRule: world -> world
@@ -146,7 +150,7 @@
                       [(or (equal? r1 '||) (equal? r2 '||) (equal? r3 '||)) (redraw-world w)]
                       [else
                        (begin
-                         (set-machine-rule-list! (world-fsm-machine w) (cons (list (format-input r1) (format-input r2) (format-input r3)) (machine-rule-list (world-fsm-machine w))))
+                         (set-machine-rule-list! (world-fsm-machine w) (cons (list (format-input r1) r2 (format-input r3)) (machine-rule-list (world-fsm-machine w))))
                          (create-new-world-input w new-input-list))]))))
 
 ;; removeRule: world -> world
@@ -161,7 +165,7 @@
                          [(or (equal? r1 '||) (equal? r2 '||) (equal? r3 '||)) (redraw-world w)]
                          [else
                           (begin
-                            (set-machine-rule-list! (world-fsm-machine w) (remove (list (format-input r1) (format-input r2) (format-input r3)) (machine-rule-list (world-fsm-machine w))))
+                            (set-machine-rule-list! (world-fsm-machine w) (remove (list (format-input r1) r2 (format-input r3)) (machine-rule-list (world-fsm-machine w))))
                             (create-new-world-input w new-input-list))]))))
 
 ;; addState: world -> world
