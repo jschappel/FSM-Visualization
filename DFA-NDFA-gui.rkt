@@ -116,21 +116,30 @@
                         (begin
                           (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
                           (create-new-world-input w new-input-list)))))
-              
+
+
+;; format-input: symbol -> symbol
+;; Purpose: This is a helper function for addRule and removeRule that formats certine symbols into valid fsm symbols
+;; EX: 'DEAD will become 'ds
+(define format-input (lambda (s)
+                       (case s
+                         [(DEAD) 'ds]
+                         [(EMP) 'e]
+                         [else s])))
 
 ;; addRule: world -> world
 ;; Purpose: Addes a rule to the world rule list
 (define addRule (lambda (w)
-                  (let ((input-list (world-input-list w))
-                        (r1 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 4)))))
-                        (r2 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 5)))))
-                        (r3 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 6)))))
-                        (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
+                  (letrec ((input-list (world-input-list w))
+                           (r1 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 4)))))
+                           (r2 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 5)))))
+                           (r3 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 6)))))
+                           (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
                     (cond
-                      [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
+                      [(or (equal? r1 '||) (equal? r2 '||) (equal? r3 '||)) (redraw-world w)]
                       [else
                        (begin
-                         (set-machine-rule-list! (world-fsm-machine w) (cons (list r1 r2 r3) (machine-rule-list (world-fsm-machine w))))
+                         (set-machine-rule-list! (world-fsm-machine w) (cons (list (format-input r1) (format-input r2) (format-input r3)) (machine-rule-list (world-fsm-machine w))))
                          (create-new-world-input w new-input-list))]))))
 
 ;; removeRule: world -> world
@@ -142,10 +151,10 @@
                            (r3 (string->symbol (string-trim (textbox-text (list-ref (world-input-list w) 6)))))
                            (new-input-list (list-set (list-set (list-set (world-input-list w) 6 (remove-text (list-ref (world-input-list w) 6) 100)) 5 (remove-text (list-ref (world-input-list w) 5) 100)) 4 (remove-text (list-ref (world-input-list w) 4) 100))))
                        (cond
-                         [(or (equal? r1 "") (equal? r2 "") (equal? r3 "")) (redraw-world w)]
+                         [(or (equal? r1 '||) (equal? r2 '||) (equal? r3 '||)) (redraw-world w)]
                          [else
                           (begin
-                            (set-machine-rule-list! (world-fsm-machine w) (remove (list r1 r2 r3) (machine-rule-list (world-fsm-machine w))))
+                            (set-machine-rule-list! (world-fsm-machine w) (remove (list (format-input r1) (format-input r2) (format-input r3)) (machine-rule-list (world-fsm-machine w))))
                             (create-new-world-input w new-input-list))]))))
 
 ;; addState: world -> world
@@ -323,7 +332,9 @@
 ;; Purpose: Constructs the code to create the specified machine
 (define genCode (lambda (w)
                   (letrec(
-                          (type 'dfa)
+                          ;; The machine type ('dfa, 'ndfa, 'pda, ect...)
+                          (type (machine-type (world-fsm-machine w)))
+                          
                           (fsm-machine (world-fsm-machine w)) ;; The machine for the world
                           ;; nameGen: null -> symbol
                           ;; Purpose: generates a random name that consists of one capital letter(A-Z) and one number(1-9)
@@ -347,7 +358,7 @@
                       
                                                  (case type
                                                    [(dfa) `(define ,(nameGen) (make-dfa (quote (,@states)) (quote (,@alpha)) (quote ,start) (quote ,finals) (quote (,@rules))))]
-                                                   [(ndfa) (println "TODO ADD NDFA")]
+                                                   [(ndfa) `(define ,(nameGen) (make-ndfa (quote (,@states)) (quote (,@alpha)) (quote ,start) (quote ,finals) (quote (,@rules))))]
                                                    [(pda) (println "TODO ADD PDA")]
                                                    [(dfst) (println "TODO ADD DFST")]
                                                    [else (error (format "The machine type: ~s, is not currently supported" type))]))))
@@ -414,7 +425,7 @@
                              (machine-type fsm-machine))
                             #t)
                
-                           (world (world-fsm-machine w) (world-tape-position w) (getCurRule (machine-rule-list fsm-machine) (list (car unprocessed-list)) (cdr unprocessed-list))
+                           (world (world-fsm-machine w) (world-tape-position w) CURRENT-RULE
                                   (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
                                   (list (car unprocessed-list)) (cdr unprocessed-list)
                                   (msgWindow (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
@@ -436,18 +447,16 @@
 
 
 
-;; getCurRule: list-of-rules processed-list unprocessed-list -> rule
-;; Purpose: get the current rule that the machine is following
-(define getCurRule (lambda (lor pl upl)
-                     (let ((transitions (append pl upl))
-                           (prev-rule (cadr (last pl)))
-                           (tran-alpha (if (empty? (car (last pl))) 'empty (caar (last pl)))) ;; see if there is a remaining alpha...
-                           (next-rule (if (list? (car upl)) (cadr (car upl)) 'empty))) ;; See if the next rule is a symbol if so dont cadr the symbol...
-                    
-                       (list prev-rule tran-alpha next-rule))))
-                       
-
-
+;; getCurRule: processed-list -> rule
+;; Purpose: get the rule that the machine just executed
+(define getCurRule (lambda (pl)
+                     (cond
+                       [(< (length pl) 2) (list 'empty 'empty 'empty)] ;; If the processed list doesn't have at least 2 items in it then no rule was followed...
+                       [else
+                        (list
+                         (cadadr pl)
+                         (caaadr pl)
+                         (cadar pl))])))
 
                   
 
@@ -472,7 +481,7 @@
                             [(eq? nextState 'reject)
                              (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
                             [else
-                             (world (world-fsm-machine w) (world-tape-position w) (getCurRule (machine-rule-list (world-fsm-machine w)) (reverse (append (list nextState) (world-processed-config-list w))) transitions)
+                             (world (world-fsm-machine w) (world-tape-position w) (getCurRule (append (list nextState) (world-processed-config-list w)))
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
                                     (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w) (world-scroll-bar-index w))]))])])))
 
@@ -486,7 +495,7 @@
                       (let(
                            (previousState (car (cdr (world-processed-config-list w)))))
                      
-                        (world (world-fsm-machine w) (world-tape-position w) (getCurRule (machine-rule-list (world-fsm-machine w)) (reverse (cdr (world-processed-config-list w))) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)))
+                        (world (world-fsm-machine w) (world-tape-position w) (getCurRule (cdr (world-processed-config-list w)))
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
                                (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w) (world-scroll-bar-index w)))])))
 
@@ -605,9 +614,11 @@
        (case (sm-type fsm-machine)
          [(dfa) (run-program (create-init-world (machine (sm-getstates fsm-machine) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "dfa added" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
-         [(ndfa) (println "TODO ADD NDFA")]
+         [(ndfa) (run-program (create-init-world (machine (sm-getstates fsm-machine) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
+                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          [(pda) (println "TODO ADD PDA")]
          [(dfst) (println "TODO ADD DFST")])])))
   
