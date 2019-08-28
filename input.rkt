@@ -27,7 +27,7 @@
 ;; - charLength: integer that represents the max amount of characters allowed in the textbox
 ;; - location: posn-struct, the position of the textbox on the scene
 ;; - active: boolean, ALWAYS SET TO FALSE.
-(struct textbox (width height color orColor text charLength location active) #:transparent)
+(struct textbox (width height color orColor text charLength location active))
 
 ;; draw-button: textbox scene -> scene
 ;; Purpose: Draws a given textbox onto the scene
