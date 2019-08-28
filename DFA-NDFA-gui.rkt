@@ -113,10 +113,16 @@
 (define removeState (lambda(w)
                       (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                             (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
+                        (if (equal? (string->symbol state) (world-cur-state w)) 
+                            (begin
+                               (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
+                                 (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
+                                 null (world-button-list w) new-input-list
+                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))
 
                         (begin
                           (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
-                          (create-new-world-input w new-input-list)))))
+                          (create-new-world-input w new-input-list))))))
 
 
 ;; format-input: symbol -> symbol
