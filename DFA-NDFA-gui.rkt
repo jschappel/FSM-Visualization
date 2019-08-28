@@ -15,9 +15,10 @@
 (define X0  (/ (-  WIDTH 200) 2))
 (define Y0 (/  HEIGHT 2))
 (define R 175)
-(define inner-R (- R 25))
+(define inner-R (- R 50))
 (define the-circle (circle R "outline" "transparent"))
-
+(define state-pen(pen "black" 3 "solid" "round" "miter"))
+(define pointer-circle (circle 5 "solid" "black"))
 
 ;; TEST MACHINES BELOW
 (define INIT-STATES '(A B C D))
@@ -658,7 +659,7 @@
           (current-index (if (null? (world-cur-state w)) 0 (index-of (machine-state-list (world-fsm-machine w)) (world-cur-state w))))
           (tip-x (get-x (* deg-shift current-index) inner-R))
           (tip-y(get-y (* deg-shift current-index) inner-R))
-          (the-arrow (triangle 20 "solid" "tan"))
+          (the-arrow(rotate 180 (triangle 15 "solid" "tan")))
 
           (draw-states
            (lambda (l i s)
@@ -683,14 +684,14 @@
                                      (draw-states (cdr l) (add1 i) s))]))))
          
     (if (not (null? (world-cur-state w)))
-        (draw-error-msg (world-error-msg w) (place-image (rotate (* deg-shift current-index) the-arrow) tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
+        (draw-error-msg (world-error-msg w)(place-image pointer-circle X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
                                                                                                                                                                                                    (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                                                                 (draw-button-list (world-button-list w)
                                                                                                                                                                                                                                   (draw-input-list (world-input-list w)
                                                                                                                                                                                                                                                    (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
-                                                                                                                              X0 Y0 tip-x tip-y "black")))
+                                                                                                                              X0 Y0 tip-x tip-y state-pen))))
         
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                        (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
