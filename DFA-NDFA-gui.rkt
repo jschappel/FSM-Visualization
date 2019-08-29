@@ -115,14 +115,14 @@
                             (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                         (if (equal? (string->symbol state) (world-cur-state w)) 
                             (begin
-                               (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
-                                 (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
-                                 null (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))
+                              (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
+                              (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
+                                     null (world-button-list w) new-input-list
+                                     (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))
 
-                        (begin
-                          (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
-                          (create-new-world-input w new-input-list))))))
+                            (begin
+                              (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
+                              (create-new-world-input w new-input-list))))))
 
 
 ;; format-input: symbol -> symbol
@@ -339,8 +339,30 @@
                          (create-new-world-input w new-input-list)))))
 
 
+;; runProgram: world -> world
+;; Purpose: Calles sm-showtransitons on the world machine. If it is valid then the next and prev buttons will work and the user can use the program
+(define runProgram(lambda (w)
+                    (let (
+                          (fsm-machine (world-fsm-machine w))
+                          (unprocessed-list (sm-showtransitions (make-dfa (machine-state-list (world-fsm-machine w))
+                                                                          (machine-alpha-list (world-fsm-machine w))
+                                                                          (machine-start-state (world-fsm-machine w))
+                                                                          (machine-final-state-list (world-fsm-machine w))
+                                                                          (machine-rule-list (world-fsm-machine w)))
+                                                                (machine-sigma-list (world-fsm-machine w)))))
+                      (cond
+                        [(equal? #t (check-machine (machine-state-list fsm-machine) (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
+                         (world (world-fsm-machine w) (world-tape-position w) CURRENT-RULE
+                                (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
+                                (list (car unprocessed-list)) (cdr unprocessed-list)
+                                (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
+                                (world-scroll-bar-index w))]
+                        [else
+                         (redraw-world-with-msg w "The Machine failed to build. Please see the cmd for more info" "Error" MSG-ERROR)]))))
+
+
 ;; genCode: world -> world
-;; Purpose: Constructs the code to create the specified machine
+;; Purpose: Exports the GUI machine to a external file called: 'fsmGUIFunctions.rkt'
 (define genCode (lambda (w)
                   (letrec(
                           ;; The machine type ('dfa, 'ndfa, 'pda, ect...)
@@ -417,13 +439,7 @@
                     (cond
                       [(equal? #t (check-machine (machine-state-list fsm-machine) (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
                        (let (
-                             (fsm-machine (world-fsm-machine w))
-                             (unprocessed-list (sm-showtransitions (make-dfa (machine-state-list fsm-machine)
-                                                                             (machine-alpha-list fsm-machine)
-                                                                             (machine-start-state fsm-machine)
-                                                                             (machine-final-state-list fsm-machine)
-                                                                             (machine-rule-list fsm-machine))
-                                                                   (machine-sigma-list fsm-machine))))
+                             (fsm-machine (world-fsm-machine w)))
                          (begin
                            (write-to-file
                             "fsmGUIFunctions.rkt"
@@ -435,12 +451,7 @@
                              (machine-alpha-list fsm-machine)
                              (machine-type fsm-machine))
                             #t)
-               
-                           (world (world-fsm-machine w) (world-tape-position w) CURRENT-RULE
-                                  (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
-                                  (list (car unprocessed-list)) (cdr unprocessed-list)
-                                  (msgWindow (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
-                                  (world-scroll-bar-index w))))]
+                           (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" MSG-SUCCESS)))]
 
                       [else
                        (begin
@@ -480,7 +491,7 @@
                     [else
                      ;; Check if the unprocessed list is empty. If so then gencode was not yet pressed
                      (cond
-                       [(empty? (world-unporcessed-config-list w)) (redraw-world-with-msg w "You must build your machine before you can continue. Please press Gen Code to proceed." "Error" MSG-ERROR)]
+                       [(empty? (world-unporcessed-config-list w)) (redraw-world-with-msg w "You must build your machine before you can continue. Please press Run to proceed." "Error" MSG-CAUTION)]
                        [else
                         (let(
                              (nextState (car (world-unporcessed-config-list w)))
@@ -500,7 +511,7 @@
 ;; shows the previous state that the machine was in
 (define showPrev (lambda(w)
                    (cond
-                     [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape, then press Gen Code and try again" "Notice" MSG-CAUTION)]
+                     [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape, then press Run and try again" "Notice" MSG-CAUTION)]
                      [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION)]
                      [else
                       (let(
@@ -554,10 +565,12 @@
 
 
 
-(define BTN-HELP (button 70 30 "Help" "solid" (make-color 39 168 242) (make-color 39 168 242) 25 #f #f (posn 55 105) openHelp))
+(define BTN-RUN (button 95 30 "Run" "solid" (make-color 4 120 40) (make-color 4 120 40) 25 #f #f (posn 55 105) runProgram))
+(define BTN-HELP (button 20 20 "?" "solid" (make-color 39 168 242) (make-color 39 168 242) 15 #t #f (posn 130 80) openHelp))
+
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 140) showNext))
 (define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) showPrev))
-(define BTN-RUN (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) genCode))
+(define BTN-GENCODE (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) genCode))
 
 (define BTN-SIGMA-ADD (button 40 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 30 70) addSigma))
 (define BTN-SIGMA-CLEAR (button 40 25 "CLEAR" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 80 70) clearSigma))
@@ -568,10 +581,10 @@
                           BTN-ADD-START BTN-REMOVE-START
                           BTN-ADD-END BTN-REMOVE-END
                           BTN-ADD-RULES BTN-REMOVE-RULES
-                          BTN-RUN BTN-NEXT BTN-PREV
+                          BTN-GENCODE BTN-NEXT BTN-PREV
                           BTN-SIGMA-ADD BTN-SIGMA-CLEAR
-                          BTN-HELP BTN-SCROLL-LEFT-RULES
-                          BTN-SCROLL-RIGHT-RULES))
+                          BTN-RUN BTN-SCROLL-LEFT-RULES
+                          BTN-SCROLL-RIGHT-RULES BTN-HELP))
 
 
 
@@ -583,7 +596,7 @@
 (define IPF-RULE1 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
 (define IPF-RULE2 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
 (define IPF-RULE3 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-SIGMA (textbox 90 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (/ (/ WIDTH 11) 2) 40) #f))
+(define IPF-SIGMA (textbox 90 25 INPUT-COLOR INPUT-COLOR "" 100 (posn (/ (/ WIDTH 11) 2) 40) #f))
 
 ;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
@@ -695,13 +708,13 @@
          
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w)(place-image pointer-circle X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
-                                                                                                                                                                         (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                                                                                                      (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                                                                                                   (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                                                                                                                                                (draw-button-list (world-button-list w)
-                                                                                                                                                                                                                                  (draw-input-list (world-input-list w)
-                                                                                                                                                                                                                                                   (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
-                                                                                                                              X0 Y0 tip-x tip-y state-pen))))
+                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                                                                                                    (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                                                                                                                                 (draw-button-list (world-button-list w)
+                                                                                                                                                                                                                                   (draw-input-list (world-input-list w)
+                                                                                                                                                                                                                                                    (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
+                                                                                                                               X0 Y0 tip-x tip-y state-pen))))
         
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                        (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
