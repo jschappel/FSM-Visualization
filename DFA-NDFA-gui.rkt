@@ -19,6 +19,7 @@
 (define the-circle (circle R "outline" "transparent"))
 (define state-pen(pen "black" 3 "solid" "round" "miter"))
 (define pointer-circle (circle 5 "solid" "black"))
+(define pointer-square(square 10 "solid" "black"))
 
 ;; TEST MACHINES BELOW
 (define INIT-STATES '(A B C D))
@@ -480,6 +481,22 @@
                          (caaadr pl)
                          (cadar pl))])))
 
+
+
+;; getScrollBarPosition: list-of-rules rule -> int
+;; Purpose: Trys to place the currently highlighted rule at the beginning of the scrollbar. If not possiable moves to scrollbar to a position
+;;      where the rule will be sceen by the user.
+(define getScrollBarPosition (lambda (lor rule)
+                               (let ((ruleIndex (index-of lor rule)))
+                                 (cond
+                                   ;; See if there is no current rule. If so return the starting index of the scrollbar
+                                   [(equal? rule '(empty empty empty)) 0]
+                                   ;; If true then we set the scroll index to max
+                                   [(> (+ ruleIndex 10) (- (length lor) 1)) (- (length lor) 10)]
+                                   ;; Otherwise return the rule index
+                                   [else ruleIndex]))))
+                           
+
                   
 
 ;; showNext: world -> world
@@ -505,7 +522,8 @@
                             [else
                              (world (world-fsm-machine w) (world-tape-position w) (getCurRule (append (list nextState) (world-processed-config-list w)))
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
-                                    (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w) (world-scroll-bar-index w))]))])])))
+                                    (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w)
+                                    (getScrollBarPosition (reverse (machine-rule-list (world-fsm-machine w))) (getCurRule (append (list nextState) (world-processed-config-list w)))))]))])])))
 
 ;; showPrev: world -> world
 ;; shows the previous state that the machine was in
@@ -516,10 +534,10 @@
                      [else
                       (let(
                            (previousState (car (cdr (world-processed-config-list w)))))
-                     
                         (world (world-fsm-machine w) (world-tape-position w) (getCurRule (cdr (world-processed-config-list w)))
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
-                               (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w) (world-scroll-bar-index w)))])))
+                               (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w)
+                               (getScrollBarPosition (reverse (machine-rule-list (world-fsm-machine w))) (getCurRule (cdr (world-processed-config-list w))))))])))
 
 ;; scrollbarRight: world -> world
 ;; Purpose: moves the scroll bar over 1 place to the right
@@ -707,7 +725,7 @@
                                      (draw-states (cdr l) (add1 i) s))]))))
          
     (if (not (null? (world-cur-state w)))
-        (draw-error-msg (world-error-msg w)(place-image pointer-circle X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
+        (draw-error-msg (world-error-msg w)(place-image pointer-square X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                                                                                                           (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
                                                                                                                                                                                        (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
                                                                                                                                                                                                     (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
