@@ -325,10 +325,20 @@
                        [(equal? (check-alpha (machine-alpha-list (world-fsm-machine w)) sigma-list) #f) (redraw-world w)]
                        [(equal? input-value "") (redraw-world w)]
                        [(> (string-length input-value) 0)
-                        (begin
-                          (set-machine-sigma-list! (world-fsm-machine w) (append sigma-list (machine-sigma-list (world-fsm-machine w))))
-                          (create-new-world-input w new-input-list))]
-                       [else (redraw-world w)]))))
+
+                        ;; Check if the unprocessed list and processed lists are empty... If they are we know run code was never pressed
+                        ;; If they are not empty then run code was pressed. If run code was pressed then we know to update the gui to handle to new sigma
+                        ;; so we will call run code from here.
+                        (cond
+                          [(empty? (and (world-unporcessed-config-list w) (world-processed-config-list w)))
+                           (begin
+                             (set-machine-sigma-list! (world-fsm-machine w) (append sigma-list (machine-sigma-list (world-fsm-machine w))))
+                             (create-new-world-input w new-input-list))]
+                          [else
+                           (begin
+                             (set-machine-sigma-list! (world-fsm-machine w) (append sigma-list (machine-sigma-list (world-fsm-machine w))))
+                             (runProgram (create-new-world-input w new-input-list)))])]
+                        [else (redraw-world w)]))))
 
 
 ;; clearSigma: world -> world
