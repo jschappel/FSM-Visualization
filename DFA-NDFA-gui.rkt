@@ -127,7 +127,7 @@
                         (if (equal? (string->symbol state) (world-cur-state w))
                             (begin
                               (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
-                              (set-machine-rule-list! (remove-all (machine-rule-list (world-fsm-machine w))))
+                              (set-machine-rule-list! (world-fsm-machine w) (remove-all (machine-rule-list (world-fsm-machine w))))
                               (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                      null (world-button-list w) new-input-list
                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))
@@ -389,7 +389,7 @@
                                   (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
                                   (list (car unprocessed-list)) (cdr unprocessed-list)
                                   (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
-                                  (world-scroll-bar-index w)))]
+                                  0))]
                         [else
                          (redraw-world-with-msg w "The Machine failed to build. Please see the cmd for more info" "Error" MSG-ERROR)]))))
 
