@@ -112,17 +112,29 @@
 ;; removeState: world -> world
 ;; Purpose: Removes a state from the world
 (define removeState (lambda(w)
-                      (let ((state (string-trim (textbox-text (car (world-input-list w)))))
-                            (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
-                        (if (equal? (string->symbol state) (world-cur-state w)) 
+                      (letrec ((state (string-trim (textbox-text (car (world-input-list w)))))
+                            (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100)))
+
+                            ;; remove-all: list-of-rules -> list-of-rules
+                            ;; Purpose: Removes all rules from the machine that contain the current rule being removed
+                            (remove-all (lambda (lor)
+                                          (filter (lambda (x) (cond
+                                                                [(equal? (symbol->string (car x)) state) #f]
+                                                                [(equal? (symbol->string (caddr x)) state) #f]
+                                                                [else #t]))
+                                                  lor))))
+                        
+                        (if (equal? (string->symbol state) (world-cur-state w))
                             (begin
                               (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
+                              (set-machine-rule-list! (remove-all (machine-rule-list (world-fsm-machine w))))
                               (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                      null (world-button-list w) new-input-list
                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))
 
                             (begin
                               (set-machine-state-list! (world-fsm-machine w) (remove (string->symbol state) (machine-state-list (world-fsm-machine w))))
+                              (set-machine-rule-list! (world-fsm-machine w) (remove-all (machine-rule-list (world-fsm-machine w))))
                               (create-new-world-input w new-input-list))))))
 
 
@@ -234,12 +246,12 @@
                      [(equal? "" end-state) (redraw-world w)]
                      [(ormap (lambda (x) (equal? x (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
                       (begin
-                        (set-machine-final-state-list! (world-fsm-machine w) (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w))))
+                        (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]
                      [else
                       (begin
                         (set-machine-state-list! (world-fsm-machine w) (cons (string->symbol end-state) (machine-state-list (world-fsm-machine w))))
-                        (set-machine-final-state-list! (world-fsm-machine w) (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w))))
+                        (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]))))
                       
 
@@ -253,7 +265,7 @@
                      [(equal? "" end-state) (redraw-world w)]
                      [(ormap (lambda(x) (equal? x (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
                       (begin
-                        (set-machine-final-state-list! (world-fsm-machine w) (remove (string->symbol end-state) (machine-final-state-list (world-fsm-machine))))
+                        (set-machine-final-state-list! (world-fsm-machine w) (remove (string->symbol end-state) (machine-final-state-list (world-fsm-machine w))))
                         (create-new-world-input w new-input-list))]
                      [else
                       (begin
@@ -278,12 +290,22 @@
 ;; Purpose: Removes a letter from the worlds alpha-list
 (define rmvAlpha (lambda (w)
                    (let ((input-value (string-trim (textbox-text(list-ref (world-input-list w) 1))))
-                         (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 1) 100))))
+                         (new-input-list (list-set (world-input-list w) 1 (remove-text (list-ref (world-input-list w) 1) 100)))
+
+                         ;; remove-all: list-of-rules symbol -> list-of-rules
+                         ;; Purpose: Removes all rules that are associated with the alpha that is being removed.
+                         (remove-all (lambda (lor alpha)
+                                          (filter (lambda (x) (cond
+                                                                [(equal? (symbol->string (cadr x)) alpha) #f]
+                                                                [else #t]))
+                                                  lor))))
+                     
                      (cond
                        [(equal? input-value "") (redraw-world w)]
                        [else
                         (begin
                           (set-machine-alpha-list! (world-fsm-machine w) (sort (remove (string->symbol input-value) (machine-alpha-list (world-fsm-machine w))) symbol<?))
+                          (set-machine-rule-list! (world-fsm-machine w) (remove-all (machine-rule-list (world-fsm-machine w)) input-value))
                           (create-new-world-input w new-input-list))]))))
 
 ;; addSigma: world -> world
@@ -338,7 +360,7 @@
                            (begin
                              (set-machine-sigma-list! (world-fsm-machine w) (append sigma-list (machine-sigma-list (world-fsm-machine w))))
                              (runProgram (create-new-world-input w new-input-list)))])]
-                        [else (redraw-world w)]))))
+                       [else (redraw-world w)]))))
 
 
 ;; clearSigma: world -> world
@@ -354,20 +376,20 @@
 ;; Purpose: Calles sm-showtransitons on the world machine. If it is valid then the next and prev buttons will work and the user can use the program
 (define runProgram(lambda (w)
                     (let (
-                          (fsm-machine (world-fsm-machine w))
-                          (unprocessed-list (sm-showtransitions (make-dfa (machine-state-list (world-fsm-machine w))
-                                                                          (machine-alpha-list (world-fsm-machine w))
-                                                                          (machine-start-state (world-fsm-machine w))
-                                                                          (machine-final-state-list (world-fsm-machine w))
-                                                                          (machine-rule-list (world-fsm-machine w)))
-                                                                (machine-sigma-list (world-fsm-machine w)))))
+                          (fsm-machine (world-fsm-machine w)))
                       (cond
                         [(equal? #t (check-machine (machine-state-list fsm-machine) (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
-                         (world (world-fsm-machine w) (world-tape-position w) CURRENT-RULE
-                                (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
-                                (list (car unprocessed-list)) (cdr unprocessed-list)
-                                (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
-                                (world-scroll-bar-index w))]
+                         (let ((unprocessed-list (sm-showtransitions (make-dfa (machine-state-list (world-fsm-machine w))
+                                                                               (machine-alpha-list (world-fsm-machine w))
+                                                                               (machine-start-state (world-fsm-machine w))
+                                                                               (machine-final-state-list (world-fsm-machine w))
+                                                                               (machine-rule-list (world-fsm-machine w)))
+                                                                     (machine-sigma-list (world-fsm-machine w)))))
+                           (world (world-fsm-machine w) (world-tape-position w) CURRENT-RULE
+                                  (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
+                                  (list (car unprocessed-list)) (cdr unprocessed-list)
+                                  (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
+                                  (world-scroll-bar-index w)))]
                         [else
                          (redraw-world-with-msg w "The Machine failed to build. Please see the cmd for more info" "Error" MSG-ERROR)]))))
 
@@ -505,7 +527,6 @@
                                    [(> (+ ruleIndex 10) (- (length lor) 1)) (- (length lor) 10)]
                                    ;; Otherwise return the rule index
                                    [else ruleIndex]))))
-                           
 
                   
 
