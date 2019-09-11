@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date "button.rkt" "posn.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
+(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -732,28 +732,35 @@
           (tip-x (get-x (* deg-shift current-index) inner-R))
           (tip-y(get-y (* deg-shift current-index) inner-R))
           (the-arrow(rotate 180 (triangle 15 "solid" "tan")))
-
+          (find-state-pos
+                          (λ(l i) (if (empty? l) (void)
+                                      (begin
+                                        (set-fsm-state-posn! (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
+                                        (find-state-pos (cdr l) (add1 i))))))
+          ;;draw-states: list of states index scene
           (draw-states
            (lambda (l i s)
+             (begin
+               (find-state-pos (machine-state-list (world-fsm-machine w)) 0)
              (cond[(empty? l) s]
-                  [(equal? (car l) (machine-start-state (world-fsm-machine w)))  
-                   (place-image(overlay (text (symbol->string (car l)) 25 START-STATE-COLOR)
+                  [(equal? (fsm-state-name (car l)) (machine-start-state (world-fsm-machine w)))
+                   (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 25 START-STATE-COLOR)
                                         (circle 25 "outline" START-STATE-COLOR))
-                               (get-x (* deg-shift i) R)
-                               (get-y (* deg-shift i) R)
+                               (fsm-state-posn (posn-x (car l)))
+                               (fsm-state-posn (posn-y (car l)))
                                (draw-states(cdr l) (add1 i) s))]
-                  [(ormap (lambda(x) (equal? (car l) x)) (machine-final-state-list (world-fsm-machine w)))
-                   (place-image(overlay (text (symbol->string (car l)) 20 "red")
+                  [(ormap (lambda(x) (equal? (fsm-state-name (car l) x))) (machine-final-state-list (world-fsm-machine w)))
+                   (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 20 "red")
                                         (overlay
                                          (circle 20 "outline" END-STATE-COLOR)
                                          (circle 25 "outline" END-STATE-COLOR)))
-                               (get-x (* deg-shift i) R)
-                               (get-y (* deg-shift i) R)
+                               (fsm-state-posn (posn-x (car l)))
+                               (fsm-state-posn (posn-y (car l)))
                                (draw-states(cdr l) (add1 i) s))]
-                  [else (place-image (text  (symbol->string (car l)) 25 "black")
-                                     (get-x (* deg-shift i) R)
-                                     (get-y (* deg-shift i) R)
-                                     (draw-states (cdr l) (add1 i) s))]))))
+                  [else (place-image (text  (symbol->string (fsm-state-name (car l))) 25 "black")
+                                    (fsm-state-posn (posn-x (car l)))
+                               (fsm-state-posn (posn-y (car l)))
+                                     (draw-states (cdr l) (add1 i) s))])))))
          
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w)(place-image pointer-square X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
