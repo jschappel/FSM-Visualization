@@ -9,12 +9,11 @@
 (provide
  (struct-out fsm-state))
 
-;; state: A structure that represents a state in the GUI
+;; fsm-state: A structure that represents a state in the GUI
 ;; - name { symbol }: The name of the state
 ;; - function { lambda }: A invariant function associated with the state
-;; - type { int }: 0 if normal, 1 if start-state, 2 if end-state
 ;; - posn { posn }: The position of the state
-(struct fsm-state (name function type posn) #:mutable)
+(struct fsm-state (name function posn) #:mutable)
 
 
 ;; state-pressed x y -> boolean

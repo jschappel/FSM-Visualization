@@ -106,7 +106,7 @@
                            w]
                           [else
                            (begin
-                             (set-machine-state-list! (world-fsm-machine w) (cons (string->symbol state) (machine-state-list (world-fsm-machine w))))
+                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol state) (lambda(v)v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                              (create-new-world-input w new-input-list))]))))
 
 ;; removeState: world -> world
@@ -735,7 +735,7 @@
           (find-state-pos
                           (λ(l i) (if (empty? l) (void)
                                       (begin
-                                        (set-fsm-state-posn! (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
+                                        (set-fsm-state-posn! (car l) (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
                                         (find-state-pos (cdr l) (add1 i))))))
           ;;draw-states: list of states index scene
           (draw-states
@@ -758,8 +758,8 @@
                                (fsm-state-posn (posn-y (car l)))
                                (draw-states(cdr l) (add1 i) s))]
                   [else (place-image (text  (symbol->string (fsm-state-name (car l))) 25 "black")
-                                    (fsm-state-posn (posn-x (car l)))
-                               (fsm-state-posn (posn-y (car l)))
+                                    (posn-x (fsm-state-posn  (car l)))
+                               (posn-y (fsm-state-posn (car l)))
                                      (draw-states (cdr l) (add1 i) s))])))))
          
     (if (not (null? (world-cur-state w)))
