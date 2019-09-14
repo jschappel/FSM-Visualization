@@ -376,10 +376,13 @@
 ;; Purpose: Calles sm-showtransitons on the world machine. If it is valid then the next and prev buttons will work and the user can use the program
 (define runProgram(lambda (w)
                     (let (
-                          (fsm-machine (world-fsm-machine w)))
+                          ;; The world fsm-machine
+                          (fsm-machine (world-fsm-machine w))
+                          ;; A condensed list of just the state-name symbols
+                          (state-list (map (lambda (x) (fsm-state-name x)) (machine-state-list (world-fsm-machine w)))))
                       (cond
-                        [(equal? #t (check-machine (machine-state-list fsm-machine) (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
-                         (let ((unprocessed-list (sm-showtransitions (make-dfa (machine-state-list (world-fsm-machine w))
+                        [(equal? #t (check-machine state-list (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
+                         (let ((unprocessed-list (sm-showtransitions (make-dfa state-list
                                                                                (machine-alpha-list (world-fsm-machine w))
                                                                                (machine-start-state (world-fsm-machine w))
                                                                                (machine-final-state-list (world-fsm-machine w))
@@ -728,9 +731,9 @@
                 
           (get-y(lambda (theta rad)
                   (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
-          (current-index (if (null? (world-cur-state w)) 0 (index-of (machine-state-list (world-fsm-machine w)) (world-cur-state w))))
+          (current-index (if (null? (world-cur-state w)) 0 (index-of (map (lambda (x) (fsm-state-name x)) (machine-state-list (world-fsm-machine w))) (world-cur-state w))))
           (tip-x (get-x (* deg-shift current-index) inner-R))
-          (tip-y(get-y (* deg-shift current-index) inner-R))
+          (tip-y (get-y (* deg-shift current-index) inner-R))
           (the-arrow(rotate 180 (triangle 15 "solid" "tan")))
           (find-state-pos
            (λ(l i) (if (empty? l) (void)
