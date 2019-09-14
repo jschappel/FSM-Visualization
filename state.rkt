@@ -7,7 +7,8 @@
 ;; Written by: Joshua and Sash 9/10/2019
 
 (provide
- (struct-out fsm-state))
+ (struct-out fsm-state)
+ fsm-state-pressed?)
 
 (define RADIUS 25) ;; The radius of the state
 
@@ -15,7 +16,7 @@
 ;; - name { symbol }: The name of the state
 ;; - function { lambda }: A invariant function associated with the state
 ;; - posn { posn }: The position of the state
-(struct fsm-state (name function posn) #:mutable)
+(struct fsm-state (name function posn) #:mutable #:transparent)
 
 
 ;; state-pressed x y -> boolean
@@ -26,5 +27,5 @@
         (loc (fsm-state-posn state)))
     (cond
       ;; Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0)) < r
-      [(< (sqrt (+ (* (- mouse-x (posn-x loc)) (- mouse-x (posn-x loc))) (* (- (mouse-y (posn-y loc)) (- (mouse-y (posn-y loc))))))) RADIUS) #t]
+      [(< (sqrt (+ (* (- mouse-x (posn-x loc)) (- mouse-x (posn-x loc))) (* (- mouse-y (posn-y loc)) (- mouse-y (posn-y loc))))) RADIUS) #t]
       [else #f])))

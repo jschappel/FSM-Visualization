@@ -102,7 +102,7 @@
                    (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                      (cond[(equal? "" state) w]
-                          [(ormap (lambda (x) (equal? state x)) (machine-state-list (world-fsm-machine w)))
+                          [(ormap (lambda (x) (equal? state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
                            w]
                           [else
                            (begin
@@ -113,16 +113,16 @@
 ;; Purpose: Removes a state from the world
 (define removeState (lambda(w)
                       (letrec ((state (string-trim (textbox-text (car (world-input-list w)))))
-                            (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100)))
+                               (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100)))
 
-                            ;; remove-all: list-of-rules -> list-of-rules
-                            ;; Purpose: Removes all rules from the machine that contain the current rule being removed
-                            (remove-all (lambda (lor)
-                                          (filter (lambda (x) (cond
-                                                                [(equal? (symbol->string (car x)) state) #f]
-                                                                [(equal? (symbol->string (caddr x)) state) #f]
-                                                                [else #t]))
-                                                  lor))))
+                               ;; remove-all: list-of-rules -> list-of-rules
+                               ;; Purpose: Removes all rules from the machine that contain the current rule being removed
+                               (remove-all (lambda (lor)
+                                             (filter (lambda (x) (cond
+                                                                   [(equal? (symbol->string (car x)) state) #f]
+                                                                   [(equal? (symbol->string (caddr x)) state) #f]
+                                                                   [else #t]))
+                                                     lor))))
                         
                         (if (equal? (string->symbol state) (world-cur-state w))
                             (begin
@@ -295,10 +295,10 @@
                          ;; remove-all: list-of-rules symbol -> list-of-rules
                          ;; Purpose: Removes all rules that are associated with the alpha that is being removed.
                          (remove-all (lambda (lor alpha)
-                                          (filter (lambda (x) (cond
-                                                                [(equal? (symbol->string (cadr x)) alpha) #f]
-                                                                [else #t]))
-                                                  lor))))
+                                       (filter (lambda (x) (cond
+                                                             [(equal? (symbol->string (cadr x)) alpha) #f]
+                                                             [else #t]))
+                                               lor))))
                      
                      (cond
                        [(equal? input-value "") (redraw-world w)]
@@ -685,7 +685,7 @@
       [else
     
        (case (sm-type fsm-machine)
-         [(dfa) (run-program (create-init-world (machine (sm-getstates fsm-machine) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda(v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
@@ -733,34 +733,35 @@
           (tip-y(get-y (* deg-shift current-index) inner-R))
           (the-arrow(rotate 180 (triangle 15 "solid" "tan")))
           (find-state-pos
-                          (λ(l i) (if (empty? l) (void)
-                                      (begin
-                                        (set-fsm-state-posn! (car l) (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
-                                        (find-state-pos (cdr l) (add1 i))))))
-          ;;draw-states: list of states index scene
-          (draw-states
-           (lambda (l i s)
-             (begin
-               (find-state-pos (machine-state-list (world-fsm-machine w)) 0)
-             (cond[(empty? l) s]
-                  [(equal? (fsm-state-name (car l)) (machine-start-state (world-fsm-machine w)))
-                   (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 25 START-STATE-COLOR)
-                                        (circle 25 "outline" START-STATE-COLOR))
-                               (fsm-state-posn (posn-x (car l)))
-                               (fsm-state-posn (posn-y (car l)))
-                               (draw-states(cdr l) (add1 i) s))]
-                  [(ormap (lambda(x) (equal? (fsm-state-name (car l) x))) (machine-final-state-list (world-fsm-machine w)))
-                   (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 20 "red")
-                                        (overlay
-                                         (circle 20 "outline" END-STATE-COLOR)
-                                         (circle 25 "outline" END-STATE-COLOR)))
-                               (fsm-state-posn (posn-x (car l)))
-                               (fsm-state-posn (posn-y (car l)))
-                               (draw-states(cdr l) (add1 i) s))]
-                  [else (place-image (text  (symbol->string (fsm-state-name (car l))) 25 "black")
-                                    (posn-x (fsm-state-posn  (car l)))
-                               (posn-y (fsm-state-posn (car l)))
-                                     (draw-states (cdr l) (add1 i) s))])))))
+           (λ(l i) (if (empty? l) (void)
+                       (begin
+                         (set-fsm-state-posn! (car l) (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
+                         (find-state-pos (cdr l) (add1 i))))))
+          
+          ;;draw-states: list-of-states index scene -> scene
+          ;; Purpose: Draws the states onto the GUI
+          (draw-states (lambda (l i s)
+                         (begin
+                           (find-state-pos (machine-state-list (world-fsm-machine w)) 0)
+                           (cond[(empty? l) s]
+                                [(equal? (fsm-state-name (car l)) (machine-start-state (world-fsm-machine w)))
+                                 (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 25 START-STATE-COLOR)
+                                                      (circle 25 "outline" START-STATE-COLOR))
+                                             (posn-x (fsm-state-posn (car l)))
+                                             (posn-y (fsm-state-posn (car l)))
+                                             (draw-states(cdr l) (add1 i) s))]
+                                [(ormap (lambda(x) (equal? (fsm-state-name (car l)) x)) (machine-final-state-list (world-fsm-machine w)))
+                                 (place-image (overlay (text (symbol->string (fsm-state-name (car l))) 20 "red")
+                                                       (overlay
+                                                        (circle 20 "outline" END-STATE-COLOR)
+                                                        (circle 25 "outline" END-STATE-COLOR)))
+                                              (posn-x (fsm-state-posn (car l)))
+                                              (posn-y (fsm-state-posn (car l)))
+                                              (draw-states (cdr l) (add1 i) s))]
+                                [else (place-image (text  (symbol->string (fsm-state-name (car l))) 25 "black")
+                                                   (posn-x (fsm-state-posn  (car l)))
+                                                   (posn-y (fsm-state-posn (car l)))
+                                                   (draw-states (cdr l) (add1 i) s))])))))
          
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w)(place-image pointer-square X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
@@ -1034,10 +1035,15 @@
                              (cond
                                [(empty? lob) '()]
                                [(button-pressed? x y (car lob)) (cons (set-active-button (car lob)) (active-button-list (cdr lob) x y))]
-                               [else (cons (car lob) (active-button-list (cdr lob) x y))]))))
-
-   
-    
+                               [else (cons (car lob) (active-button-list (cdr lob) x y))])))
+       
+       ;; checkButtonStates: list-of-states mouse-x mouse-y -> null or state
+       ;; Purpose: Returns the state that was pressed on the GUI
+       (checkButtonStates (lambda (los x y)
+                            (cond
+                              [(empty? los) null]
+                              [(fsm-state-pressed? x y (car los)) (car los)]
+                              [else (checkButtonStates (cdr los) x y)]))))
     (cond
       [(string=? me "button-down")
        (cond
@@ -1049,6 +1055,18 @@
                                                                                      (world-processed-config-list w) (world-unporcessed-config-list w) null
                                                                                      (world-scroll-bar-index w))]
             [else (redraw-world w)])]
+
+         ;; Check if a state was pressed
+         [(not (null? (checkButtonStates (machine-state-list (world-fsm-machine w)) x y)))
+          (begin
+            (println
+             (string-append
+              "State: "
+              (symbol->string (fsm-state-name (checkButtonStates (machine-state-list (world-fsm-machine w)) x y)))
+              " was pressed"))
+            (redraw-world w))]
+
+         ;; Check if a button or input was pressed
          [else (begin
                  (define buttonPressed (check-button-list (world-button-list w) x y))
                  (cond
