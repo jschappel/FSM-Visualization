@@ -9,6 +9,8 @@
 (provide
  (struct-out fsm-state))
 
+(define RADIUS 25) ;; The radius of the state
+
 ;; fsm-state: A structure that represents a state in the GUI
 ;; - name { symbol }: The name of the state
 ;; - function { lambda }: A invariant function associated with the state
@@ -19,11 +21,10 @@
 ;; state-pressed x y -> boolean
 ;; Purpose: Determins if a specific state was pressed
 ;; When given an x and y corrdinate, will determine if that coordinate was inside the state. If so returns true
-(define (fsm-state-pressed? mouse-x mouse-y tbox)
-  (cond
-    [(and (and (> mouse-x (- (posn-x (fsm-state-posn tbox)) (/ (fsm-state-posn tbox) 2)))
-               (< mouse-x (+ (posn-x (fsm-state-posn tbox)) (/ (fsm-state-posn tbox) 2))))
-          (and (> mouse-y (- (posn-y (fsm-state-posn tbox)) (/ (fsm-state-posn tbox) 2)))
-               (< mouse-y (+ (posn-y (fsm-state-posn tbox)) (/ (fsm-state-posn tbox) 2)))))
-     #t]
-    [else #f]))
+(define (fsm-state-pressed? mouse-x mouse-y state)
+  (let ( ;; The posn of the given state
+        (loc (fsm-state-posn state)))
+    (cond
+      ;; Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0)) < r
+      [(< (sqrt (+ (* (- mouse-x (posn-x loc)) (- mouse-x (posn-x loc))) (* (- (mouse-y (posn-y loc)) (- (mouse-y (posn-y loc))))))) RADIUS) #t]
+      [else #f])))

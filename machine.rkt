@@ -1,7 +1,7 @@
 #lang racket
 
 ;; ------- machine.rkt -------
-;; This file contains the structure for a fsm machine (dfa, ndfa, pda, 
+;; This file contains the structure for a fsm machine (dfa, ndfa, pda, ...) 
 ;; Written by: Joshua Schappel 8/15/2019
 
 ;; export necessary files
@@ -10,7 +10,7 @@
  (struct-out pda-machine))
 
 ;; machine A structure that represents a fsm machine. This structure can represent any type of machine
-;; - state-list { list-of-symbols }: A list of states that the machine can be in
+;; - state-list { list-of-states }: A list of state structs that the machine can be in
 ;; - start-state { Symbol }: The state that the machine starts in 
 ;; - final-state-list { list-of-symbols }: A list of states that the machine can end in
 ;; - rule-list { list-of-list-of-symbols }: A list of rules that the machine must follow. Each rule should be defined as '(A a B).
