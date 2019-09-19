@@ -119,8 +119,8 @@
                                ;; Purpose: Removes all rules from the machine that contain the current rule being removed
                                (remove-all (lambda (lor)
                                              (filter (lambda (x) (cond
-                                                                   [(equal? (symbol->string (car x)) state) #f]
-                                                                   [(equal? (symbol->string (caddr x)) state) #f]
+                                                                   [(equal? (symbol->string (fsm-state-name (car x))) state) #f]
+                                                                   [(equal?  (symbol->string (fsm-state-name (caddr x))) state) #f]
                                                                    [else #t]))
                                                      lor))))
                         
@@ -198,7 +198,7 @@
                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (null? (machine-start-state (world-fsm-machine w)))
                          (begin
-                           (set-machine-state-list! (world-fsm-machine w) (cons (string->symbol start-state) (machine-state-list (world-fsm-machine w))))
+                           (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) (lambda(v) v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                   (string->symbol start-state) (world-button-list w) new-input-list
@@ -250,7 +250,7 @@
                         (create-new-world-input w new-input-list))]
                      [else
                       (begin
-                        (set-machine-state-list! (world-fsm-machine w) (cons (string->symbol end-state) (machine-state-list (world-fsm-machine w))))
+                        (set-machine-state-list! (world-fsm-machine w) (cons(fsm-state (string->symbol end-state) (lambda(v) v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]))))
                       
