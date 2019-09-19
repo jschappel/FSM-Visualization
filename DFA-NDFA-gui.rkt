@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
+(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date readline "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -667,7 +667,7 @@
 
 ;; visualize: fsm-machine -> world
 ;; Purpose: allows a user to pre-load a machine
-(define (visualize fsm-machine)
+(define (visualize fsm-machine . args)
   (letrec ((run-program (lambda (w)
                           (big-bang
                               w
@@ -678,25 +678,45 @@
     
     ;; check if it is a pre-made machine or a brand new one
     (cond
-      [(symbol? fsm-machine)
+      [(symbol? fsm-machine) ;; Brand new machine
        (case fsm-machine
          [(dfa) (run-program (create-init-world (machine '() null '() '() '() '() 'dfa )))]
          [(ndfa) (run-program (create-init-world (machine '() null '() '() '() '() 'ndfa )))]
          [(pda) (println "TODO ADD PDA")]
          [(dfst) (println "TODO ADD DFST")]
          [else (error (format "~s is not a valid machine type" fsm-machine))])]
-      [else
-    
-       (case (sm-type fsm-machine)
-         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda(v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+      
+      [(empty? args)
+       (case (sm-type fsm-machine) ;; Pre-made with no predicates
+         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda (v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
-         [(ndfa) (run-program (create-init-world (machine (sm-getstates fsm-machine) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+         [(ndfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda (v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                           (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          [(pda) (println "TODO ADD PDA")]
-         [(dfst) (println "TODO ADD DFST")])])))
+         [(dfst) (println "TODO ADD DFST")])]
+      
+      [else ;; Pre-made with predicates
+       (letrec ((state-list (sm-getstates fsm-machine))
+
+                ;; get-member symbol list-of-procedure -> procedure
+                ;; Purpose: determins if the given symbol is in the procedure
+                (get-member (lambda (s los)
+                              (cond
+                                [(empty? los) '()]
+                                [(equal? (caar los) s) (car los)]
+                                [else (get-member s (cdr los))]))))
+         
+         (run-program (create-init-world (machine  (map (lambda (x)
+                                                          (let ((temp (get-member x args)))
+                                                            (if (empty? temp)
+                                                                (fsm-state x (lambda (v) v) (posn 0 0))
+                                                                (fsm-state x (cadr temp) (posn 0 0))))) state-list)
+                                                   (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+                                                   (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
+                                         (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))])))
   
 
 
@@ -1099,6 +1119,10 @@
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
+
+;; SHHHH you found the easteregg
+(define (marco)
+  (println "Just a functional guy living in an imperative world"))
 
 
 ;; ----- world redrawing functions below -----
