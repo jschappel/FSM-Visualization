@@ -10,6 +10,7 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 (define SCENE-TITLE "FSM GUI ALPHA 2.0")
+(define TRUE-FUNCTION (lambda (v) #true)) ;; The default function for a state variable
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -106,7 +107,7 @@
                            w]
                           [else
                            (begin
-                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol state) (lambda(v)v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                              (create-new-world-input w new-input-list))]))))
 
 ;; removeState: world -> world
@@ -198,7 +199,7 @@
                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (null? (machine-start-state (world-fsm-machine w)))
                          (begin
-                           (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) (lambda(v) v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                           (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                   (string->symbol start-state) (world-button-list w) new-input-list
@@ -250,7 +251,7 @@
                         (create-new-world-input w new-input-list))]
                      [else
                       (begin
-                        (set-machine-state-list! (world-fsm-machine w) (cons(fsm-state (string->symbol end-state) (lambda(v) v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                        (set-machine-state-list! (world-fsm-machine w) (cons(fsm-state (string->symbol end-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]))))
                       
@@ -688,11 +689,11 @@
       
       [(empty? args)
        (case (sm-type fsm-machine) ;; Pre-made with no predicates
-         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda (v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x TRUE-FUNCTION (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
-         [(ndfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda (v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+         [(ndfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x TRUE-FUNCTION (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                           (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
                                                  (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          [(pda) (println "TODO ADD PDA")]
@@ -712,7 +713,7 @@
          (run-program (create-init-world (machine  (map (lambda (x)
                                                           (let ((temp (get-member x args)))
                                                             (if (empty? temp)
-                                                                (fsm-state x (lambda (v) v) (posn 0 0))
+                                                                (fsm-state x TRUE-FUNCTION (posn 0 0))
                                                                 (fsm-state x (cadr temp) (posn 0 0))))) state-list)
                                                    (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                    (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
