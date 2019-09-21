@@ -104,11 +104,11 @@
                    (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                      (cond[(equal? "" state) w]
-                          [(ormap (lambda (x) (equal? state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
+                          [(ormap (lambda (x) (equal? (format-input state) (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
                            w]
                           [else
                            (begin
-                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (format-input (string->symbol state)) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                              (create-new-world-input w new-input-list))]))))
 
 ;; removeState: world -> world
@@ -144,6 +144,7 @@
 ;; Purpose: This is a helper function for addRule and removeRule that formats certine symbols into valid fsm symbols
 ;; EX: 'DEAD will become 'ds
 (define format-input (lambda (s)
+                       (println s)
                        (case s
                          [(DEAD) 'ds]
                          [(EMP) 'e]
