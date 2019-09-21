@@ -11,6 +11,7 @@
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 (define SCENE-TITLE "FSM GUI ALPHA 2.0")
 (define TRUE-FUNCTION (lambda (v) #true)) ;; The default function for a state variable
+(define TAPE-INDEX -1) ;; The current tape input that is being used
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -555,6 +556,7 @@
                             [(eq? nextState 'reject)
                              (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
                             [else
+                             (set! TAPE-INDEX (+ 1 TAPE-INDEX))
                              (world (world-fsm-machine w) (world-tape-position w) (getCurRule (append (list nextState) (world-processed-config-list w)))
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
                                     (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w)
@@ -569,6 +571,7 @@
                      [else
                       (let(
                            (previousState (car (cdr (world-processed-config-list w)))))
+                        (set! TAPE-INDEX (- TAPE-INDEX 1))
                         (world (world-fsm-machine w) (world-tape-position w) (getCurRule (cdr (world-processed-config-list w)))
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
                                (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w)
@@ -790,7 +793,7 @@
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w)(place-image pointer-square X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                                                                                                           (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
                                                                                                                                                                                                     (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                                                                  (draw-button-list (world-button-list w)
                                                                                                                                                                                                                                    (draw-input-list (world-input-list w)
@@ -799,12 +802,16 @@
         
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                        (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                    (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
+                                                                                                    (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
                                                                                                                  (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                               (draw-button-list (world-button-list w)
                                                                                                                                                 (draw-input-list (world-input-list w)
                                                                                                                                                                  (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
-
+#|
+-----------------------
+    TOP GUI RENDERING
+-----------------------
+|# 
 
 ;; top-input-label: null -> image
 ;; Purpose: Creates the top left input lable
@@ -814,15 +821,64 @@
                  (rectangle (/ WIDTH 11) TOP "outline" "transparent")))
 
 
-;; los-top-label: null -> Image
+;; los-top-label: list-of-sigma (tape input) rule int -> Image
 ;; Purpose: Creates the top list of sigmas lable
-(define (los-top-label los)
-  (letrec ((list-to-string (lambda (lor)
+(define (los-top-label los cur-rule rectWidth)
+  (letrec (
+           (og-los los) ;; The list of states 
+           (list-to-string (lambda (lor)
                              (cond
                                [(empty? lor) ""]
-                               [else (string-append (symbol->string (car lor)) " " (list-to-string (cdr lor)))]))))
-    (scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
+                               [else (string-append (symbol->string (car lor)) " " (list-to-string (cdr lor)))])))
 
+           ;; list-2-img: list-of-sigma (tape input) int -> image
+           ;; Purpose: Converts the tape input into image that overlays the tape in the center
+           (list-2-img (lambda (los accum)
+                         (cond
+                           [(empty? los) empty-image]
+                           [(equal? 1 (length los)) (tape-box (car los) 24 accum)]
+                           [else
+                            (beside
+                             (tape-box (car los) 24 accum)
+                             (list-2-img (cdr los) (add1 accum)))
+                            ])))
+
+           ;; tape-box: string int int -> image
+           ;; Purpose: given a string, will overlay the text onto a image
+           (tape-box (lambda (sigma fnt-size index)
+                       (cond
+                         [(and (equal? sigma (cadr cur-rule)) (equal? index TAPE-INDEX))
+                          (overlay
+                           (text (symbol->string sigma) fnt-size "red")
+                           (rectangle rectWidth TOP "outline" "transparent"))]
+                         [else
+                          (overlay
+                           (text (symbol->string sigma) fnt-size "Black")
+                           (rectangle rectWidth TOP "outline" "transparent"))]))))
+
+    (overlay
+     (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue")
+     (list-2-img los 0))))
+    
+;;(scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
+
+
+;; create-gui-top: list-of-sigma rule -> image
+;; Creates the top of the gui layout
+(define (create-gui-top los cur-rule)
+  (overlay/align "left" "middle"
+                 (beside
+                  (top-input-label)
+                  (los-top-label los cur-rule 30))
+                 (rectangle WIDTH TOP "outline" "transparent")))
+
+
+
+#|
+-----------------------
+  BOTTOM GUI RENDERING
+-----------------------
+|# 
 
 ;; create-gui-bottom: list-of-rules rule int -> image
 ;; Purpose: Creates the bottom of the gui layout
@@ -848,14 +904,6 @@
    (text (string-upcase "Rules:") 24 "Black")
    (rectangle (/ WIDTH 11) BOTTOM "outline" "blue")))
 
-;; create-gui-top: null -> image
-;; Creates the top of the gui layout
-(define (create-gui-top los)
-  (overlay/align "left" "middle"
-                 (beside
-                  (top-input-label)
-                  (los-top-label los))
-                 (rectangle WIDTH TOP "outline" "transparent")))
 
 ;; align-items image image -> image
 ;; Purpose: Aligns 2 images next to each other
@@ -907,6 +955,14 @@
              (rectangle (- (- WIDTH (/ WIDTH 11)) 200) BOTTOM "outline" "blue")
              (list-2-img (reverse lor) rectWidth 0))])))
 
+
+
+
+#|
+-----------------------
+    LEFT GUI RENDERING
+-----------------------
+|# 
 
 ;; create-gui-left: null -> image
 ;; Purpose: creates the left conrol panel for the 
