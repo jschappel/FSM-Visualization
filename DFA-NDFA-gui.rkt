@@ -1067,7 +1067,9 @@
 ;; Purpose: Creates a header label for right control panel
 (define (control-header2 msg)
   (overlay
-   (text (string-upcase msg) 14 "Black")
+   (text/font (string-upcase msg) 14 "Black"
+             #f 'default 'normal 'normal #t)
+   ;;(text (string-upcase msg) 14 "Black")
    (rectangle (/ WIDTH 11) 40 "outline" "transparent")))
 
 
