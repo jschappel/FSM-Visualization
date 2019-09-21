@@ -825,12 +825,6 @@
 ;; Purpose: Creates the top list of sigmas lable
 (define (los-top-label los cur-rule rectWidth)
   (letrec (
-           (og-los los) ;; The list of states 
-           (list-to-string (lambda (lor)
-                             (cond
-                               [(empty? lor) ""]
-                               [else (string-append (symbol->string (car lor)) " " (list-to-string (cdr lor)))])))
-
            ;; list-2-img: list-of-sigma (tape input) int -> image
            ;; Purpose: Converts the tape input into image that overlays the tape in the center
            (list-2-img (lambda (los accum)
@@ -847,6 +841,7 @@
            ;; Purpose: given a string, will overlay the text onto a image
            (tape-box (lambda (sigma fnt-size index)
                        (cond
+                         ;; Check if the sigmas are equal and that it is the right index in the tape input
                          [(and (equal? sigma (cadr cur-rule)) (equal? index TAPE-INDEX))
                           (overlay
                            (text (symbol->string sigma) fnt-size "red")
@@ -859,8 +854,6 @@
     (overlay
      (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue")
      (list-2-img los 0))))
-    
-;;(scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
 
 
 ;; create-gui-top: list-of-sigma rule -> image
@@ -969,11 +962,11 @@
 (define (create-gui-left)
   (overlay/align "left" "top"
                  (above/align "left"
-                              (state-left-control)
-                              (alpha-left-control)
-                              (start-left-control)
-                              (end-left-control)
-                              (rule-left-control))
+                              (state-right-control)
+                              (alpha-right-control)
+                              (start-right-control)
+                              (end-right-control)
+                              (rule-right-control))
                  (rectangle 200 HEIGHT "outline" "gray")))
 
 ;; create-gui-alpha: list of alpha -> image
@@ -1011,45 +1004,56 @@
              (draw-alpha (cdr loa) fnt-size))])))
 
 
+#|
+-----------------------
+  RIGHT GUI RENDERING
+-----------------------
+|# 
   
 
-;; state-left-control: null -> image
+;; state-right-control: null -> image
 ;; Purpose: Creates the state control panel
-(define (state-left-control)
+(define (state-right-control)
   (overlay/align "left" "top"
                  (control-header "State Options")
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")))
 
                  
-;; alpha-left-control: null -> image
+;; alpha-right-control: null -> image
 ;; Purpose: Creates the alpha control panel
-(define (alpha-left-control)
+(define (alpha-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "Alpha Options")))
 
 
-;; start-left-control: null -> image
+;; start-right-control: null -> image
 ;; Purpose: Creates the start control panel
-(define (start-left-control)
+(define (start-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "Start State")))
 
 
-;; end-left-control: null -> image
+;; end-right-control: null -> image
 ;; Purpose: Creates the end control panel
-(define (end-left-control)
+(define (end-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "End State")))
 
-;; rule-left-control: null -> image
+;; rule-right-control: null -> image
 ;; Purpose: Creates the rule control panel
-(define (rule-left-control)
+(define (rule-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "Add Rules")))
+
+#|
+-----------------------------
+  ADDITIONAL DRAW FUNCTIONS
+-----------------------------
+|# 
   
 ;; control-header: string -> image
 ;; Purpose: Creates a header label for right control panel
@@ -1081,6 +1085,13 @@
       [(> (image-width text) (image-width img))
        (scale-text-to-image (scale newScale text) img 1)]
       [else (overlay (scale sc text) img)])))
+
+
+#|
+------------------
+  EVENT HANDLERS
+------------------
+|# 
 
 ;; process-mouse-event: world integer integer string --> world
 ;; Purpose: processes a users mouse event
@@ -1182,7 +1193,12 @@
   (println "Just a functional guy living in an imperative world"))
 
 
-;; ----- world redrawing functions below -----
+
+#|
+---------------------------
+  WORLD DRAWING FUNCTIONS
+---------------------------
+|# 
 
 ;; create-new-world-input: world list-of-input-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-input-fields changes
