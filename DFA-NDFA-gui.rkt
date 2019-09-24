@@ -1,5 +1,5 @@
 #lang racket
-(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
+(require 2htdp/image 2htdp/universe fsm net/sendurl racket/date readline "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
 
 ;; GLOBAL VALIRABLES
 (define WIDTH 1200) ;; The width of the scene
@@ -10,6 +10,8 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 (define SCENE-TITLE "FSM GUI ALPHA 2.0")
+(define TRUE-FUNCTION (lambda (v) #true)) ;; The default function for a state variable
+(define TAPE-INDEX -1) ;; The current tape input that is being used
 
 ;; CIRCLE VARIABLES
 (define X0  (/ (-  WIDTH 200) 2))
@@ -102,11 +104,11 @@
                    (let ((state (string-trim (textbox-text (car (world-input-list w)))))
                          (new-input-list (list-set (world-input-list w) 0 (remove-text (car (world-input-list w)) 100))))
                      (cond[(equal? "" state) w]
-                          [(ormap (lambda (x) (equal? state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
+                          [(ormap (lambda (x) (equal? (format-input state) (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
                            w]
                           [else
                            (begin
-                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol state) (lambda(v)v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                             (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (format-input (string->symbol state)) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                              (create-new-world-input w new-input-list))]))))
 
 ;; removeState: world -> world
@@ -142,6 +144,7 @@
 ;; Purpose: This is a helper function for addRule and removeRule that formats certine symbols into valid fsm symbols
 ;; EX: 'DEAD will become 'ds
 (define format-input (lambda (s)
+                       (println s)
                        (case s
                          [(DEAD) 'ds]
                          [(EMP) 'e]
@@ -198,7 +201,7 @@
                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (null? (machine-start-state (world-fsm-machine w)))
                          (begin
-                           (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) (lambda(v) v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                           (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                   (string->symbol start-state) (world-button-list w) new-input-list
@@ -250,7 +253,7 @@
                         (create-new-world-input w new-input-list))]
                      [else
                       (begin
-                        (set-machine-state-list! (world-fsm-machine w) (cons(fsm-state (string->symbol end-state) (lambda(v) v) (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                        (set-machine-state-list! (world-fsm-machine w) (cons(fsm-state (string->symbol end-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]))))
                       
@@ -554,6 +557,7 @@
                             [(eq? nextState 'reject)
                              (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
                             [else
+                             (set! TAPE-INDEX (+ 1 TAPE-INDEX))
                              (world (world-fsm-machine w) (world-tape-position w) (getCurRule (append (list nextState) (world-processed-config-list w)))
                                     (car (cdr nextState)) (world-button-list w) (world-input-list w)
                                     (append (list nextState) (world-processed-config-list w)) transitions (world-error-msg w)
@@ -568,6 +572,7 @@
                      [else
                       (let(
                            (previousState (car (cdr (world-processed-config-list w)))))
+                        (set! TAPE-INDEX (- TAPE-INDEX 1))
                         (world (world-fsm-machine w) (world-tape-position w) (getCurRule (cdr (world-processed-config-list w)))
                                (car (cdr previousState)) (world-button-list w) (world-input-list w)
                                (cdr (world-processed-config-list w)) (cons (car (world-processed-config-list w)) (world-unporcessed-config-list w)) (world-error-msg w)
@@ -667,7 +672,7 @@
 
 ;; visualize: fsm-machine -> world
 ;; Purpose: allows a user to pre-load a machine
-(define (visualize fsm-machine)
+(define (visualize fsm-machine . args)
   (letrec ((run-program (lambda (w)
                           (big-bang
                               w
@@ -678,25 +683,45 @@
     
     ;; check if it is a pre-made machine or a brand new one
     (cond
-      [(symbol? fsm-machine)
+      [(symbol? fsm-machine) ;; Brand new machine
        (case fsm-machine
          [(dfa) (run-program (create-init-world (machine '() null '() '() '() '() 'dfa )))]
          [(ndfa) (run-program (create-init-world (machine '() null '() '() '() '() 'ndfa )))]
          [(pda) (println "TODO ADD PDA")]
          [(dfst) (println "TODO ADD DFST")]
          [else (error (format "~s is not a valid machine type" fsm-machine))])]
-      [else
-    
-       (case (sm-type fsm-machine)
-         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x (lambda(v) v) (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+      
+      [(empty? args)
+       (case (sm-type fsm-machine) ;; Pre-made with no predicates
+         [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x TRUE-FUNCTION (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
-         [(ndfa) (run-program (create-init-world (machine (sm-getstates fsm-machine) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+         [(ndfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x TRUE-FUNCTION (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                           (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Gen Code to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          [(pda) (println "TODO ADD PDA")]
-         [(dfst) (println "TODO ADD DFST")])])))
+         [(dfst) (println "TODO ADD DFST")])]
+      
+      [else ;; Pre-made with predicates
+       (letrec ((state-list (sm-getstates fsm-machine))
+
+                ;; get-member symbol list-of-procedure -> procedure
+                ;; Purpose: determins if the given symbol is in the procedure
+                (get-member (lambda (s los)
+                              (cond
+                                [(empty? los) '()]
+                                [(equal? (caar los) s) (car los)]
+                                [else (get-member s (cdr los))]))))
+         
+         (run-program (create-init-world (machine  (map (lambda (x)
+                                                          (let ((temp (get-member x args)))
+                                                            (if (empty? temp)
+                                                                (fsm-state x TRUE-FUNCTION (posn 0 0))
+                                                                (fsm-state x (cadr temp) (posn 0 0))))) state-list)
+                                                   (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
+                                                   (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
+                                         (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))])))
   
 
 
@@ -769,7 +794,7 @@
     (if (not (null? (world-cur-state w)))
         (draw-error-msg (world-error-msg w)(place-image pointer-square X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                                                                                                           (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
+                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
                                                                                                                                                                                                     (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                                                                                                                  (draw-button-list (world-button-list w)
                                                                                                                                                                                                                                    (draw-input-list (world-input-list w)
@@ -778,12 +803,16 @@
         
         (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
                                                                                        (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                    (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w))) (/ WIDTH 2) (/ TOP 2)
+                                                                                                    (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
                                                                                                                  (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
                                                                                                                               (draw-button-list (world-button-list w)
                                                                                                                                                 (draw-input-list (world-input-list w)
                                                                                                                                                                  (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
-
+#|
+-----------------------
+    TOP GUI RENDERING
+-----------------------
+|# 
 
 ;; top-input-label: null -> image
 ;; Purpose: Creates the top left input lable
@@ -793,15 +822,57 @@
                  (rectangle (/ WIDTH 11) TOP "outline" "transparent")))
 
 
-;; los-top-label: null -> Image
+;; los-top-label: list-of-sigma (tape input) rule int -> Image
 ;; Purpose: Creates the top list of sigmas lable
-(define (los-top-label los)
-  (letrec ((list-to-string (lambda (lor)
-                             (cond
-                               [(empty? lor) ""]
-                               [else (string-append (symbol->string (car lor)) " " (list-to-string (cdr lor)))]))))
-    (scale-text-to-image (text (list-to-string los) 24 "Black") (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue") 1)))
+(define (los-top-label los cur-rule rectWidth)
+  (letrec (
+           ;; list-2-img: list-of-sigma (tape input) int -> image
+           ;; Purpose: Converts the tape input into image that overlays the tape in the center
+           (list-2-img (lambda (los accum)
+                         (cond
+                           [(empty? los) empty-image]
+                           [(equal? 1 (length los)) (tape-box (car los) 24 accum)]
+                           [else
+                            (beside
+                             (tape-box (car los) 24 accum)
+                             (list-2-img (cdr los) (add1 accum)))
+                            ])))
 
+           ;; tape-box: string int int -> image
+           ;; Purpose: given a string, will overlay the text onto a image
+           (tape-box (lambda (sigma fnt-size index)
+                       (cond
+                         ;; Check if the sigmas are equal and that it is the right index in the tape input
+                         [(and (equal? sigma (cadr cur-rule)) (equal? index TAPE-INDEX))
+                          (overlay
+                           (text (symbol->string sigma) fnt-size "red")
+                           (rectangle rectWidth TOP "outline" "transparent"))]
+                         [else
+                          (overlay
+                           (text (symbol->string sigma) fnt-size "Black")
+                           (rectangle rectWidth TOP "outline" "transparent"))]))))
+
+    (overlay
+     (rectangle (- (- WIDTH (/ WIDTH 11)) 200) TOP "outline" "blue")
+     (list-2-img los 0))))
+
+
+;; create-gui-top: list-of-sigma rule -> image
+;; Creates the top of the gui layout
+(define (create-gui-top los cur-rule)
+  (overlay/align "left" "middle"
+                 (beside
+                  (top-input-label)
+                  (los-top-label los cur-rule 30))
+                 (rectangle WIDTH TOP "outline" "transparent")))
+
+
+
+#|
+-----------------------
+  BOTTOM GUI RENDERING
+-----------------------
+|# 
 
 ;; create-gui-bottom: list-of-rules rule int -> image
 ;; Purpose: Creates the bottom of the gui layout
@@ -827,14 +898,6 @@
    (text (string-upcase "Rules:") 24 "Black")
    (rectangle (/ WIDTH 11) BOTTOM "outline" "blue")))
 
-;; create-gui-top: null -> image
-;; Creates the top of the gui layout
-(define (create-gui-top los)
-  (overlay/align "left" "middle"
-                 (beside
-                  (top-input-label)
-                  (los-top-label los))
-                 (rectangle WIDTH TOP "outline" "transparent")))
 
 ;; align-items image image -> image
 ;; Purpose: Aligns 2 images next to each other
@@ -887,16 +950,24 @@
              (list-2-img (reverse lor) rectWidth 0))])))
 
 
+
+
+#|
+-----------------------
+    LEFT GUI RENDERING
+-----------------------
+|# 
+
 ;; create-gui-left: null -> image
 ;; Purpose: creates the left conrol panel for the 
 (define (create-gui-left)
   (overlay/align "left" "top"
                  (above/align "left"
-                              (state-left-control)
-                              (alpha-left-control)
-                              (start-left-control)
-                              (end-left-control)
-                              (rule-left-control))
+                              (state-right-control)
+                              (alpha-right-control)
+                              (start-right-control)
+                              (end-right-control)
+                              (rule-right-control))
                  (rectangle 200 HEIGHT "outline" "gray")))
 
 ;; create-gui-alpha: list of alpha -> image
@@ -934,45 +1005,56 @@
              (draw-alpha (cdr loa) fnt-size))])))
 
 
+#|
+-----------------------
+  RIGHT GUI RENDERING
+-----------------------
+|# 
   
 
-;; state-left-control: null -> image
+;; state-right-control: null -> image
 ;; Purpose: Creates the state control panel
-(define (state-left-control)
+(define (state-right-control)
   (overlay/align "left" "top"
                  (control-header "State Options")
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")))
 
                  
-;; alpha-left-control: null -> image
+;; alpha-right-control: null -> image
 ;; Purpose: Creates the alpha control panel
-(define (alpha-left-control)
+(define (alpha-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "Alpha Options")))
 
 
-;; start-left-control: null -> image
+;; start-right-control: null -> image
 ;; Purpose: Creates the start control panel
-(define (start-left-control)
+(define (start-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "Start State")))
 
 
-;; end-left-control: null -> image
+;; end-right-control: null -> image
 ;; Purpose: Creates the end control panel
-(define (end-left-control)
+(define (end-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "End State")))
 
-;; rule-left-control: null -> image
+;; rule-right-control: null -> image
 ;; Purpose: Creates the rule control panel
-(define (rule-left-control)
+(define (rule-right-control)
   (overlay/align "left" "top"
                  (rectangle 200 CONTROL-BOX-H "outline" "blue")
                  (control-header "Add Rules")))
+
+#|
+-----------------------------
+  ADDITIONAL DRAW FUNCTIONS
+-----------------------------
+|# 
   
 ;; control-header: string -> image
 ;; Purpose: Creates a header label for right control panel
@@ -986,7 +1068,9 @@
 ;; Purpose: Creates a header label for right control panel
 (define (control-header2 msg)
   (overlay
-   (text (string-upcase msg) 14 "Black")
+   (text/font (string-upcase msg) 14 "Black"
+             #f 'default 'normal 'normal #t)
+   ;;(text (string-upcase msg) 14 "Black")
    (rectangle (/ WIDTH 11) 40 "outline" "transparent")))
 
 
@@ -1004,6 +1088,13 @@
       [(> (image-width text) (image-width img))
        (scale-text-to-image (scale newScale text) img 1)]
       [else (overlay (scale sc text) img)])))
+
+
+#|
+------------------
+  EVENT HANDLERS
+------------------
+|# 
 
 ;; process-mouse-event: world integer integer string --> world
 ;; Purpose: processes a users mouse event
@@ -1100,8 +1191,17 @@
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
 
+;; SHHHH you found the easteregg
+(define (marco)
+  (println "Just a functional guy living in an imperative world"))
 
-;; ----- world redrawing functions below -----
+
+
+#|
+---------------------------
+  WORLD DRAWING FUNCTIONS
+---------------------------
+|# 
 
 ;; create-new-world-input: world list-of-input-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-input-fields changes
