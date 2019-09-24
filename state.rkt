@@ -27,5 +27,5 @@
         (loc (fsm-state-posn state)))
     (cond
       ;; Math.sqrt((x1-x0)*(x1-x0) + (y1-y0)*(y1-y0)) < r
-      [(< (sqrt (+ (* (- mouse-x (posn-x loc)) (- mouse-x (posn-x loc))) (* (- mouse-y (posn-y loc)) (- mouse-y (posn-y loc))))) RADIUS) #t]
+      [(< (sqrt (+ (sqr (- mouse-x (posn-x loc))) (sqr(- mouse-y (posn-y loc))))) RADIUS) #t]
       [else #f])))
