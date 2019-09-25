@@ -122,7 +122,11 @@ Button onClick Functions
                           [else
                            (begin
                              (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (format-input (string->symbol state)) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
-                             (create-new-world-input w new-input-list))]))))
+                             (set! TAPE-INDEX -1)
+                             (set! INIT-INDEX 0)
+                             (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
+                                    null (world-button-list w) new-input-list '()
+                                    '() (world-error-msg w) (world-scroll-bar-index w)))]))))
 
 ;; removeState: world -> world
 ;; Purpose: Removes a state from the world
@@ -143,21 +147,24 @@ Button onClick Functions
                             (begin
                               (set-machine-state-list! (world-fsm-machine w) (filter(lambda(x) (not(equal? (fsm-state-name x) (string->symbol state)))) (machine-state-list (world-fsm-machine w))))
                               (set-machine-rule-list! (world-fsm-machine w) (remove-all (machine-rule-list (world-fsm-machine w))))
+                              (set! TAPE-INDEX -1)
+                              (set! INIT-INDEX 0)
                               (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                      null (world-button-list w) new-input-list
-                                     (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))
+                                     '() '() (world-error-msg w) (world-scroll-bar-index w)))
 
                             (begin
                               (set-machine-state-list! (world-fsm-machine w) (filter (lambda(x) (not(equal? (fsm-state-name x) (string->symbol state)))) (machine-state-list (world-fsm-machine w))))
                               (set-machine-rule-list! (world-fsm-machine w) (remove-all (machine-rule-list (world-fsm-machine w))))
-                              (create-new-world-input w new-input-list))))))
+                              (set! TAPE-INDEX -1)
+                              (set! INIT-INDEX 0)
+                              (create-new-world-input-empty w new-input-list))))))
 
 
 ;; format-input: symbol -> symbol
 ;; Purpose: This is a helper function for addRule and removeRule that formats certine symbols into valid fsm symbols
 ;; EX: 'DEAD will become 'ds
 (define format-input (lambda (s)
-                       (println s)
                        (case s
                          [(DEAD) 'ds]
                          [(EMP) 'e]
@@ -179,8 +186,10 @@ Button onClick Functions
                       [(or (equal? r1 '||) (equal? r2 '||) (equal? r3 '||)) (redraw-world w)]
                       [else
                        (begin
+                         (set! TAPE-INDEX -1)
+                         (set! INIT-INDEX 0)
                          (set-machine-rule-list! (world-fsm-machine w) (cons (list (format-input r1) r2 (format-input r3)) (machine-rule-list (world-fsm-machine w))))
-                         (create-new-world-input w new-input-list))]))))
+                         (create-new-world-input-empty w new-input-list))]))))
 
 ;; removeRule: world -> world
 ;; Purpose: Removes a world from the world list
@@ -194,8 +203,10 @@ Button onClick Functions
                          [(or (equal? r1 '||) (equal? r2 '||) (equal? r3 '||)) (redraw-world w)]
                          [else
                           (begin
+                            (set! TAPE-INDEX -1)
+                            (set! INIT-INDEX 0)
                             (set-machine-rule-list! (world-fsm-machine w) (remove (list (format-input r1) r2 (format-input r3)) (machine-rule-list (world-fsm-machine w))))
-                            (create-new-world-input w new-input-list))]))))
+                            (create-new-world-input-empty w new-input-list))]))))
 
 ;; addState: world -> world
 ;; Purpose: Adds a start state to the world
@@ -207,25 +218,30 @@ Button onClick Functions
                      (cond
                        [(equal? "" start-state) (redraw-world w)]
                        [(and (null? (machine-start-state (world-fsm-machine w))) (ormap (lambda(x) (equal? start-state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w))))
-                        ;;(equal? (string->symbol start-state) x)) (machine-state-list (world-fsm-machine w))))
                         (begin
+                          (set! TAPE-INDEX -1)
+                          (set! INIT-INDEX 0)
                           (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                           (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                  null (world-button-list w) new-input-list
-                                 (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
+                                 '() '() (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (null? (machine-start-state (world-fsm-machine w)))
                          (begin
+                           (set! TAPE-INDEX -1)
+                           (set! INIT-INDEX 0)
                            (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                   null (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
+                                  '() '() (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (ormap (lambda (x) (equal? start-state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
                          (begin
+                           (set! TAPE-INDEX -1)
+                           (set! INIT-INDEX 0)
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                   null (world-button-list w) new-input-list
-                                  (world-processed-config-list w) (world-unporcessed-config-list w)(world-error-msg w) (world-scroll-bar-index w)))]
+                                  '() '() (world-error-msg w) (world-scroll-bar-index w)))]
                        [else w]))))
 
 
@@ -240,18 +256,22 @@ Button onClick Functions
                            
                            [ (ormap (lambda (x) (equal? (string->symbol start-state)(fsm-state-name x))) (machine-state-list (world-fsm-machine w)))
                              (begin
+                               (set! TAPE-INDEX -1)
+                               (set! INIT-INDEX 0)
                                (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                                (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
                                       null (world-button-list w) new-input-list
-                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
+                                      '() '() (world-error-msg w) (world-scroll-bar-index w)))]
                            
                            [else
                             (begin
+                              (set! TAPE-INDEX -1)
+                              (set! INIT-INDEX 0)
                               (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) TRUE-FUNCTION (posn 0 0))  (machine-state-list (world-fsm-machine w))))
                               (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                               (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
                                      null (world-button-list w) new-input-list
-                                     (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]))))
+                                     '() '() (world-error-msg w) (world-scroll-bar-index w)))]))))
 
 ;; addEnd: world -> world
 ;; Purpose: Adds an end state to the world
@@ -263,13 +283,17 @@ Button onClick Functions
                      [(equal? "" end-state) (redraw-world w)]
                      [(ormap (lambda (x) (equal? (fsm-state-name x) (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
                       (begin
+                        (set! TAPE-INDEX -1)
+                        (set! INIT-INDEX 0)
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
-                        (create-new-world-input w new-input-list))]
+                        (create-new-world-input-empty w new-input-list))]
                      [else
                       (begin
+                        (set! TAPE-INDEX -1)
+                        (set! INIT-INDEX 0)
                         (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol end-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
-                        (create-new-world-input w new-input-list))]))))
+                        (create-new-world-input-empty w new-input-list))]))))
                 
 
 ;; rmvEnd: world -> world
@@ -282,12 +306,16 @@ Button onClick Functions
                      [(equal? "" end-state) (redraw-world w)]
                      [(ormap (lambda(x) (equal? (fsm-state-name x) (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
                       (begin
+                        (set! TAPE-INDEX -1)
+                        (set! INIT-INDEX 0)
                         (set-machine-final-state-list! (world-fsm-machine w) (remove (string->symbol end-state) (machine-final-state-list (world-fsm-machine w))))
-                        (create-new-world-input w new-input-list))]
+                        (create-new-world-input-empty w new-input-list))]
                      [else
                       (begin
+                        (set! TAPE-INDEX -1)
+                        (set! INIT-INDEX 0)
                         (set-machine-final-state-list! (world-fsm-machine w) (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w))))
-                        (create-new-world-input w new-input-list))]))))
+                        (create-new-world-input-empty w new-input-list))]))))
                       
 
 ;; addAlpha: world -> world
@@ -300,8 +328,10 @@ Button onClick Functions
                        [(equal? input-value "") (redraw-world w)]
                        [else
                         (begin
+                          (set! TAPE-INDEX -1)
+                          (set! INIT-INDEX 0)
                           (set-machine-alpha-list! (world-fsm-machine w) (sort (remove-duplicates (cons (string->symbol input-value) (machine-alpha-list (world-fsm-machine w)))) symbol<?))
-                          (create-new-world-input w new-input-list))]))))
+                          (create-new-world-input-empty w new-input-list))]))))
 
 ;; rmvAlpha: world -> world
 ;; Purpose: Removes a letter from the worlds alpha-list
@@ -321,9 +351,11 @@ Button onClick Functions
                        [(equal? input-value "") (redraw-world w)]
                        [else
                         (begin
+                          (set! TAPE-INDEX -1)
+                          (set! INIT-INDEX 0)
                           (set-machine-alpha-list! (world-fsm-machine w) (sort (remove (string->symbol input-value) (machine-alpha-list (world-fsm-machine w))) symbol<?))
                           (set-machine-rule-list! (world-fsm-machine w) (remove-all (machine-rule-list (world-fsm-machine w)) input-value))
-                          (create-new-world-input w new-input-list))]))))
+                          (create-new-world-input-empty w new-input-list))]))))
 
 ;; addSigma: world -> world
 ;; Purpose: adds a letter or group of letters to the sigma list
@@ -371,10 +403,14 @@ Button onClick Functions
                         (cond
                           [(empty? (and (world-unporcessed-config-list w) (world-processed-config-list w)))
                            (begin
+                             (set! TAPE-INDEX -1)
+                             (set! INIT-INDEX 0)
                              (set-machine-sigma-list! (world-fsm-machine w) (append sigma-list (machine-sigma-list (world-fsm-machine w))))
-                             (create-new-world-input w new-input-list))]
+                             (create-new-world-input-empty w new-input-list))]
                           [else
                            (begin
+                             (set! TAPE-INDEX -1)
+                             (set! INIT-INDEX 0)
                              (set-machine-sigma-list! (world-fsm-machine w) (append sigma-list (machine-sigma-list (world-fsm-machine w))))
                              (runProgram (create-new-world-input w new-input-list)))])]
                        [else (redraw-world w)]))))
@@ -385,8 +421,10 @@ Button onClick Functions
 (define clearSigma (lambda (w)
                      (let ((new-input-list (list-set (world-input-list w) 7 (remove-text (list-ref (world-input-list w) 7) 100))))
                        (begin
+                         (set! TAPE-INDEX -1)
+                         (set! INIT-INDEX 0)
                          (set-machine-sigma-list! (world-fsm-machine w) '())
-                         (create-new-world-input w new-input-list)))))
+                         (create-new-world-input-empty w new-input-list)))))
 
 
 ;; runProgram: world -> world
@@ -1388,6 +1426,13 @@ WORLD DRAWING FUNCTIONS
 (define (create-new-world-input a-world loi)
   (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) (world-cur-state a-world) (world-button-list a-world)
          loi (world-processed-config-list a-world)(world-unporcessed-config-list a-world) (world-error-msg a-world) (world-scroll-bar-index a-world)))
+
+;; create-new-world-input: world list-of-input-fields -> world
+;; Purpose: Creates a new world to handle the list-of-input-fields changes AND sets the processed and unprocesseed lists to empty
+(define (create-new-world-input-empty a-world loi)
+  (world (world-fsm-machine a-world) (world-tape-position a-world) (world-cur-rule a-world) null (world-button-list a-world)
+         loi '()'() (world-error-msg a-world) (world-scroll-bar-index a-world)))
+
 
 ;; create-new-world-button: world list-of-button-fields -> world
 ;; Purpose: Creates a new world to handle the list-of-button-fields changes
