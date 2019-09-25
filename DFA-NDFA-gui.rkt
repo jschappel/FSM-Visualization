@@ -17,7 +17,7 @@
 (define CONTROL-BOX-H (/ HEIGHT 5)) ;; The height of each left side conrol box
 (define MAIN-SCENE (empty-scene WIDTH HEIGHT "white")) ;; Create the initial scene
 (define SCENE-TITLE "FSM GUI ALPHA 2.0")
-(define TRUE-FUNCTION (lambda (v) #true)) ;; The default function for a state variable
+(define TRUE-FUNCTION (lambda (v) '())) ;; The default function for a state variable
 (define TAPE-INDEX -1) ;; The current tape input that is being used
 
 ;; CIRCLE VARIABLES
@@ -26,6 +26,8 @@
 (define R 175)
 (define inner-R (- R 50))
 (define CENTER-CIRCLE (circle 5 "solid" "red"))
+(define TRUE-INV (make-color 17 92 7)) ;; Color for passed invarient
+(define FALSE-INV (make-color 214 2 2)) ;; Color for failed invarient
 
 ;; Remove the following if draw function works out
 (define the-circle (circle R "outline" "transparent"))
@@ -52,6 +54,13 @@
                      (list '(A b C)
                            '(A a B)
                            '(B c A))))
+(define M3 (make-dfa '(A B C)
+                     '(a b c)
+                     'A
+                     '(B C)
+                     (list '(B b C)
+                           '(C a B)
+                           '(B c B))))
 
 
 
@@ -439,19 +448,26 @@ Button onClick Functions
                           (fsm-machine (world-fsm-machine w))
                           ;; A condensed list of just the state-name symbols
                           (state-list (map (lambda (x) (fsm-state-name x)) (machine-state-list (world-fsm-machine w)))))
+
+                  
                       (cond
                         [(equal? #t (check-machine state-list (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
-                         (let ((unprocessed-list (sm-showtransitions (make-dfa state-list
-                                                                               (machine-alpha-list (world-fsm-machine w))
-                                                                               (machine-start-state (world-fsm-machine w))
-                                                                               (machine-final-state-list (world-fsm-machine w))
-                                                                               (machine-rule-list (world-fsm-machine w)))
-                                                                     (machine-sigma-list (world-fsm-machine w)))))
-                           (world (world-fsm-machine w) (world-tape-position w) CURRENT-RULE
-                                  (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
-                                  (list (car unprocessed-list)) (cdr unprocessed-list)
-                                  (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
-                                  0))]
+                         (let (
+                               ;; The passing machine
+                               (m (make-dfa state-list
+                                            (machine-alpha-list (world-fsm-machine w))
+                                            (machine-start-state (world-fsm-machine w))
+                                            (machine-final-state-list (world-fsm-machine w))
+                                            (machine-rule-list (world-fsm-machine w)))))
+                           (begin
+                             (define unprocessed-list (sm-showtransitions m (machine-sigma-list (world-fsm-machine w))))     
+                             (world (machine (machine-state-list (world-fsm-machine w)) (sm-getstart m) (sm-getfinals m)
+                                             (reverse (sm-getrules m)) (machine-sigma-list fsm-machine) (sm-getalphabet m) (sm-type m))
+                                    (world-tape-position w) CURRENT-RULE
+                                    (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
+                                    (list (car unprocessed-list)) (cdr unprocessed-list)
+                                    (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
+                                    0)))]
                         [else
                          (redraw-world-with-msg w "The Machine failed to build. Please see the cmd for more info" "Error" MSG-ERROR)]))))
 
@@ -830,12 +846,13 @@ Scene Rendering
                       (set-fsm-state-posn! (car l) (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
                       (find-state-pos (cdr l) (add1 i))))))
 
-       ;; determin-inv: procedure processed-list -> string
+       ;; determin-inv: procedure processed-list -> color
        ;; Purpose: Determins the color of the state based on the invarent
        (determin-inv (lambda (f p-list)
                        (cond
-                         [(equal? #t (f p-list)) "green"]
-                         [else "red"])))
+                         [(equal? #t (f p-list)) TRUE-INV]
+                         [(equal? #f (f p-list)) FALSE-INV]
+                         [else "black"])))
           
        ;;draw-states: list-of-states index scene -> scene
        ;; Purpose: Draws the states onto the GUI
@@ -844,7 +861,7 @@ Scene Rendering
                         (find-state-pos (machine-state-list (world-fsm-machine w)) 0)
                         (cond[(empty? l) s]
                              [(equal? (fsm-state-name (car l)) (machine-start-state (world-fsm-machine w)))
-                              (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 25 START-STATE-COLOR)
+                              (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 25 "black")
                                                    (circle 25 "outline" START-STATE-COLOR))
                                           (posn-x (fsm-state-posn (car l)))
                                           (posn-y (fsm-state-posn (car l)))
@@ -865,38 +882,44 @@ Scene Rendering
        ;; draw-inner-with-prev: none -> image
        ;; Purpose: Creates the inner circle that contains the arrows and the prevous state pointer
        (draw-inner-with-prev (lambda()
-                               (overlay
-                                CENTER-CIRCLE
-                                (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
-                                                                                                                            '||
-                                                                                                                            (cadr (world-cur-rule w))))
-                                (inner-circle2 (- 360 (* (get-state-index state-list (car (getCurRule (world-processed-config-list w))) 0) deg-shift)))
-                                (circle inner-R "outline" "transparent"))))
+                               (letrec ((index (get-state-index state-list (world-cur-state w) 0)))
+                                 (overlay
+                                  CENTER-CIRCLE
+                                  (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
+                                                                                                                              '||
+                                                                                                                              (cadr (world-cur-rule w))) index)
+                                  (inner-circle2 (- 360 (* (get-state-index state-list (car (getCurRule (world-processed-config-list w))) 0) deg-shift)))
+                                  (circle inner-R "outline" "transparent")))))
 
        ;; draw-inner-with-prev: none -> image
        ;; Purpose: Creates the inner circle that contains the arrows
        (draw-inner-no-prev (lambda()
-                             (overlay
-                              CENTER-CIRCLE
-                              (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
-                                                                                                                          '||
-                                                                                                                          (cadr (world-cur-rule w))))
-                              (circle inner-R "outline" "transparent"))))
+                             (letrec ((index (get-state-index state-list (world-cur-state w) 0)))
+                               (overlay
+                                CENTER-CIRCLE
+                                (inner-circle1 (- 360 (* index deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
+                                                                               '||
+                                                                               (cadr (world-cur-rule w))) index)
+                                (circle inner-R "outline" "transparent")))))
        
-       ;; inner-circle1: num symbol -> image
+       ;; inner-circle1: num symbol num -> image
        ;; Purpose: draws an arrow with the given symbol above it and then rotates it by the given degreese
-       (inner-circle1 (lambda(deg sym)
+       (inner-circle1 (lambda(deg sym index)
                         (letrec
                             (
+                             (state-color (determin-inv
+                                           (fsm-state-function (list-ref (machine-state-list (world-fsm-machine w)) index))
+                                           (world-processed-config-list w)))
                              ;; arrow: none -> image
                              ;; Purpose: draws a arrow
                              (arrow (lambda ()
+                                     
                                       (overlay/offset 
                                        (text (symbol->string sym) 18 "red")
                                        15 15
                                        (beside/align "center"
-                                                     (rectangle (- inner-R 15) 5 "solid" "black")
-                                                     (rotate 270 (triangle 15 "solid" "black"))))))
+                                                     (rectangle (- inner-R 15) 5 "solid" state-color)
+                                                     (rotate 270 (triangle 15 "solid" state-color))))))
 
                              ;; down-arrow: none -> image
                              ;; Purpose: creates an upside-down arrow
@@ -905,8 +928,8 @@ Scene Rendering
                                             (rotate 180 (text (symbol->string sym) 18 "red"))
                                             15 -15
                                             (beside/align "center"
-                                                          (rectangle (- inner-R 15) 5 "solid" "black")
-                                                          (rotate 270 (triangle 15 "solid" "black")))))))
+                                                          (rectangle (- inner-R 15) 5 "solid" state-color)
+                                                          (rotate 270 (triangle 15 "solid" state-color)))))))
                           (cond
                             ;; if if the rotate deg is > 90 and < 180, if so then use the upside-down arrow
                             [(and (> deg 90) (< deg 270))
