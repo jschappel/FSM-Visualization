@@ -85,7 +85,14 @@
 ;; - TODO stack list and stack alphabet
 (struct world (fsm-machine tape-position cur-rule cur-state button-list input-list processed-config-list unporcessed-config-list error-msg scroll-bar-index) #:transparent)
 
-;; ***** BUTTON FUCTIONS BELOW *****
+
+
+
+#|
+--------------------------
+Button onClick Functions
+--------------------------
+|# 
 
 ;; THIS FUNCTION IS JUST A PLACEHOLDER
 (define NULL-FUNCTION (lambda (w)
@@ -599,10 +606,13 @@
 
                              (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w) (world-cur-state w) (world-button-list w)
                                     (world-input-list w) (world-processed-config-list w)(world-unporcessed-config-list w) (world-error-msg w) (sub1 index))]))))
-                        
-                        
 
-;; **** BUTTONS BELOW ***
+#|
+-----------------------
+Button Declarations
+-----------------------
+|# 
+
 (define BTN-ADD-STATE (button 70 25 "Add" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 150) (- CONTROL-BOX-H 25)) addState))
 (define BTN-REMOVE-STATE (button 70 25 "Remove" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 24 #f #f (posn (- WIDTH 50) (- CONTROL-BOX-H 25)) removeState))
 
@@ -644,8 +654,12 @@
                           BTN-SCROLL-RIGHT-RULES BTN-HELP))
 
 
+#|
+-----------------------
+Textbox Declarations
+-----------------------
+|# 
 
-;; **** INPUT FIELDS BELOW ****
 (define IPF-STATE (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 5 (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
 (define IPF-ALPHA (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
 (define IPF-START (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
@@ -659,6 +673,13 @@
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
 
 
+
+#|
+-----------------------
+Initialize World
+-----------------------
+|# 
+
 ;; create-init-world: machine msgWindow(optional) -> world
 ;; Purpose: Creates the initail world with the given machine
 (define (create-init-world m . msg)
@@ -668,7 +689,11 @@
 
 
 
-;; cmd functions
+#|
+-----------------------
+Cmd Functions
+-----------------------
+|# 
 
 ;; visualize: fsm-machine -> world
 ;; Purpose: allows a user to pre-load a machine
@@ -723,6 +748,13 @@
                                                    (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
                                          (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))])))
 
+
+
+#|
+-----------------------
+Scene Rendering
+-----------------------
+|# 
 
 ;; draw-main-img: world scene -> scene
 ;; Purpose: Draws the main GUI image
