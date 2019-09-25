@@ -8,6 +8,7 @@
 (require 2htdp/image 2htdp/universe fsm net/sendurl racket/date readline "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
 
 ;; GLOBAL VALIRABLES
+(define VERSION "BETA 1.0") ;; The version of the GUI
 (define WIDTH 1200) ;; The width of the scene
 (define HEIGHT 600) ;; The height of the scene
 (define TOP (/ HEIGHT 10))
@@ -24,6 +25,9 @@
 (define Y0 (/ (+ TOP (- HEIGHT BOTTOM)) 2))
 (define R 175)
 (define inner-R (- R 50))
+(define CENTER-CIRCLE (circle 5 "solid" "red"))
+
+;; Remove the following if draw function works out
 (define the-circle (circle R "outline" "transparent"))
 (define state-pen(pen "black" 3 "solid" "round" "miter"))
 (define pointer-circle (circle 5 "solid" "black"))
@@ -67,8 +71,8 @@
 (define INIT-INDEX 0) ;; The initail index of the scrollbar
 
 ;; COLORS FOR GUI
-(define CONTROLLER-BUTTON-COLOR (make-color 48 63 159))
-(define INPUT-COLOR (make-color 255 193 7))
+(define CONTROLLER-BUTTON-COLOR (make-color 0 61 191)) ;;(make-color 48 63 159))
+(define INPUT-COLOR (make-color 186 190 191)) ;;(make-color 255 193 7))
 (define START-STATE-COLOR (make-color 6 142 60))
 (define END-STATE-COLOR (make-color 219 9 9))
 (define MSG-ERROR (make-color 255 0 0))
@@ -679,7 +683,7 @@ Button Declarations
 
 
 (define BTN-RUN (button 95 30 "Run" "solid" (make-color 4 120 40) (make-color 4 120 40) 25 #f #f (posn 55 105) runProgram))
-(define BTN-HELP (button 20 20 "?" "solid" (make-color 39 168 242) (make-color 39 168 242) 15 #t #f (posn 130 80) openHelp))
+(define BTN-HELP (button 25 25 "?" "solid" (make-color 39 168 242) (make-color 39 168 242) 15 #t #f (posn 130 80) openHelp))
 
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 140) showNext))
 (define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) showPrev))
@@ -747,7 +751,10 @@ Cmd Functions
   (letrec ((run-program (lambda (w)
                           (big-bang
                               w
-                            (name SCENE-TITLE)
+                            (name (string-append
+                                   (symbol->string (machine-type (world-fsm-machine w)))
+                                   ": "
+                                   VERSION))
                             (on-draw draw-world)
                             (on-mouse process-mouse-event)
                             (on-key process-key)))))
@@ -852,7 +859,7 @@ Scene Rendering
        ;; Purpose: Creates the inner circle that contains the arrows and the prevous state pointer
        (draw-inner-with-prev (lambda()
                                (overlay
-                                (circle 5 "solid" "red")
+                                CENTER-CIRCLE
                                 (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
                                                                                                                             '||
                                                                                                                             (cadr (world-cur-rule w))))
@@ -863,7 +870,7 @@ Scene Rendering
        ;; Purpose: Creates the inner circle that contains the arrows
        (draw-inner-no-prev (lambda()
                              (overlay
-                              (circle 5 "solid" "red")
+                              CENTER-CIRCLE
                               (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
                                                                                                                           '||
                                                                                                                           (cadr (world-cur-rule w))))
@@ -930,7 +937,7 @@ Scene Rendering
     ;; Check if the inner circle needs to be drawn
     (cond
       [(null? (world-cur-state w))
-       (place-image (circle 5 "solid" "red") X0 Y0
+       (place-image CENTER-CIRCLE X0 Y0
                     (draw-states (machine-state-list (world-fsm-machine w)) 0 s))]
       [else
        ;; see if there is a previous state
