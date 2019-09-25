@@ -829,6 +829,13 @@ Scene Rendering
                     (begin
                       (set-fsm-state-posn! (car l) (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
                       (find-state-pos (cdr l) (add1 i))))))
+
+       ;; determin-inv: procedure processed-list -> string
+       ;; Purpose: Determins the color of the state based on the invarent
+       (determin-inv (lambda (f p-list)
+                       (cond
+                         [(equal? #t (f p-list)) "green"]
+                         [else "red"])))
           
        ;;draw-states: list-of-states index scene -> scene
        ;; Purpose: Draws the states onto the GUI
@@ -843,7 +850,7 @@ Scene Rendering
                                           (posn-y (fsm-state-posn (car l)))
                                           (draw-states(cdr l) (add1 i) s))]
                              [(ormap (lambda(x) (equal? (fsm-state-name (car l)) x)) (machine-final-state-list (world-fsm-machine w)))
-                              (place-image (overlay (text (symbol->string (fsm-state-name (car l))) 20 "red")
+                              (place-image (overlay (text (symbol->string (fsm-state-name (car l))) 20 "black")
                                                     (overlay
                                                      (circle 20 "outline" END-STATE-COLOR)
                                                      (circle 25 "outline" END-STATE-COLOR)))

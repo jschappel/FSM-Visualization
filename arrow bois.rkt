@@ -57,6 +57,6 @@
 (define (draw-all)
   (overlay
    (circle 5 "solid" "red")
-   (inner-circle1 0 'J)
-   (inner-circle2 120)
+   (inner-circle1 125 'J)
+   (inner-circle2 115)
    (circle INNER-R "outline" "blue")))
