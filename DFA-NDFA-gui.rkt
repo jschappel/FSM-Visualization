@@ -452,21 +452,40 @@ Button onClick Functions
                   
                       (cond
                         [(equal? #t (check-machine state-list (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
-                         (let (
-                               ;; The passing machine
-                               (m (make-dfa state-list
-                                            (machine-alpha-list (world-fsm-machine w))
-                                            (machine-start-state (world-fsm-machine w))
-                                            (machine-final-state-list (world-fsm-machine w))
-                                            (machine-rule-list (world-fsm-machine w)))))
+                         (letrec (
+                                  ;; The passing machine
+                                  (m (make-dfa state-list
+                                               (machine-alpha-list (world-fsm-machine w))
+                                               (machine-start-state (world-fsm-machine w))
+                                               (machine-final-state-list (world-fsm-machine w))
+                                               (machine-rule-list (world-fsm-machine w))))
+
+                                  ;; in-cur-state-list: symbol machine-state-list -> boolean/state-struct
+                                  ;; Purpose: Returns a state-struct if its name is the same as the symbol, otherwise
+                                  ;;   it returns false.
+                                  (in-cur-state-list (lambda (s msl)
+                                                       (cond
+                                                         [(empty? msl) #f]
+                                                         [(equal? s (fsm-state-name (car msl))) (car msl)]
+                                                         [else (in-cur-state-list s (cdr msl))]))))
                            (begin
-                             (define unprocessed-list (sm-showtransitions m (machine-sigma-list (world-fsm-machine w))))     
-                             (world (machine (machine-state-list (world-fsm-machine w)) (sm-getstart m) (sm-getfinals m)
-                                             (reverse (sm-getrules m)) (machine-sigma-list fsm-machine) (sm-getalphabet m) (sm-type m))
+                             (define unprocessed-list (sm-showtransitions m (machine-sigma-list (world-fsm-machine w)))) ;; Unprocessed transitions
+                             (define new-list (remove-duplicates (append (sm-getstates m) state-list))) ;; new-list: checks for any fsm state add-ons (ie. 'ds)
+                             (world (machine (map (lambda (x)
+                                                    (let (
+                                                          (state (in-cur-state-list x (machine-state-list (world-fsm-machine w)))))
+                                                      (cond
+                                                        [(not (equal? #f state)) state]
+                                                        [else
+                                                         (fsm-state x TRUE-FUNCTION (posn 0 0))])))
+                                                  new-list)
+                                             (sm-getstart m) (sm-getfinals m) (reverse (sm-getrules m))
+                                             (machine-sigma-list fsm-machine) (sm-getalphabet m) (sm-type m))
                                     (world-tape-position w) CURRENT-RULE
                                     (machine-start-state (world-fsm-machine w)) (world-button-list w) (world-input-list w)
                                     (list (car unprocessed-list)) (cdr unprocessed-list)
-                                    (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
+                                    (msgWindow "The machine was sucessfuly Built. Press Next and Prev to show the machine's transitions" "Success"
+                                               (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)
                                     0)))]
                         [else
                          (redraw-world-with-msg w "The Machine failed to build. Please see the cmd for more info" "Error" MSG-ERROR)]))))
