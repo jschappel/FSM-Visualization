@@ -20,8 +20,8 @@
 (define TAPE-INDEX -1) ;; The current tape input that is being used
 
 ;; CIRCLE VARIABLES
-(define X0  (/ (-  WIDTH 200) 2))
-(define Y0 (/  HEIGHT 2))
+(define X0  (/ (+ (/ WIDTH 11) (- WIDTH 200)) 2))
+(define Y0 (/ (+ TOP (- HEIGHT BOTTOM)) 2))
 (define R 175)
 (define inner-R (- R 50))
 (define the-circle (circle R "outline" "transparent"))
@@ -134,8 +134,8 @@ Button onClick Functions
                                ;; Purpose: Removes all rules from the machine that contain the current rule being removed
                                (remove-all (lambda (lor)
                                              (filter (lambda (x) (cond
-                                                                   [(equal? (symbol->string (fsm-state-name (car x))) state) #f]
-                                                                   [(equal?  (symbol->string (fsm-state-name (caddr x))) state) #f]
+                                                                   [(equal? (symbol->string (car x)) state) #f]
+                                                                   [(equal?  (symbol->string (caddr x)) state) #f]
                                                                    [else #t]))
                                                      lor))))
                         
@@ -207,7 +207,7 @@ Button onClick Functions
                      (cond
                        [(equal? "" start-state) (redraw-world w)]
                        [(and (null? (machine-start-state (world-fsm-machine w))) (ormap (lambda(x) (equal? start-state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w))))
-                                                                                         ;;(equal? (string->symbol start-state) x)) (machine-state-list (world-fsm-machine w))))
+                        ;;(equal? (string->symbol start-state) x)) (machine-state-list (world-fsm-machine w))))
                         (begin
                           (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                           (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
@@ -892,8 +892,8 @@ Scene Rendering
     (println (world-cur-state w))
     (cond
       [(null? (world-cur-state w))
-       ;;(place-image the-circle X0 Y0 
-       (draw-states (machine-state-list (world-fsm-machine w)) 0 s)]
+       (place-image (circle 5 "solid" "red") X0 Y0
+                    (draw-states (machine-state-list (world-fsm-machine w)) 0 s))]
       [else
        ;; see if there is a previous state
        (cond
