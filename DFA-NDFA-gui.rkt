@@ -597,6 +597,7 @@ Button onClick Functions
 (define scrollbarRight (lambda (w)
                          (let ((index (world-scroll-bar-index w)))
                            (cond
+                             [(< (length (machine-rule-list (world-fsm-machine w))) 10) (redraw-world w)]
                              [(< (length (list-tail (machine-rule-list (world-fsm-machine w)) (add1 index))) 10) (redraw-world w)]
                              [else
 
@@ -889,7 +890,6 @@ Scene Rendering
                             [else (get-state-index (cdr los) s (add1 accum))]))))
                             
     ;; Check if the inner circle needs to be drawn
-    (println (world-cur-state w))
     (cond
       [(null? (world-cur-state w))
        (place-image (circle 5 "solid" "red") X0 Y0
