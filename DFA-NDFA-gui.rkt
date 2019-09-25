@@ -722,7 +722,147 @@
                                                    (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                    (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
                                          (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))])))
-  
+
+
+;; draw-main-img: world scene -> scene
+;; Purpose: Draws the main GUI image
+(define (draw-main-img w s)
+  (letrec
+      (          
+       (deg-shift (if (empty? (machine-state-list (world-fsm-machine w))) 0 (/ 360 (length (machine-state-list (world-fsm-machine w))))))
+       (state-list (machine-state-list (world-fsm-machine w))) ;; The list of states in the world
+       (get-x (lambda (theta rad) (truncate (+ (* rad (cos (degrees->radians theta))) X0))))
+                
+       (get-y(lambda (theta rad)
+               (truncate (+ (* rad (sin (degrees->radians theta))) Y0))))
+       (current-index (if (null? (world-cur-state w)) 0 (index-of (map (lambda (x) (fsm-state-name x)) (machine-state-list (world-fsm-machine w))) (world-cur-state w))))
+       (tip-x (get-x (* deg-shift current-index) inner-R))
+       (tip-y (get-y (* deg-shift current-index) inner-R))
+       (the-arrow(rotate 180 (triangle 15 "solid" "tan")))
+       (find-state-pos
+        (λ(l i) (if (empty? l) (void)
+                    (begin
+                      (set-fsm-state-posn! (car l) (posn (get-x (* deg-shift i) R) (get-y (* deg-shift i) R)))
+                      (find-state-pos (cdr l) (add1 i))))))
+          
+       ;;draw-states: list-of-states index scene -> scene
+       ;; Purpose: Draws the states onto the GUI
+       (draw-states (lambda (l i s)
+                      (begin
+                        (find-state-pos (machine-state-list (world-fsm-machine w)) 0)
+                        (cond[(empty? l) s]
+                             [(equal? (fsm-state-name (car l)) (machine-start-state (world-fsm-machine w)))
+                              (place-image(overlay (text (symbol->string (fsm-state-name (car l))) 25 START-STATE-COLOR)
+                                                   (circle 25 "outline" START-STATE-COLOR))
+                                          (posn-x (fsm-state-posn (car l)))
+                                          (posn-y (fsm-state-posn (car l)))
+                                          (draw-states(cdr l) (add1 i) s))]
+                             [(ormap (lambda(x) (equal? (fsm-state-name (car l)) x)) (machine-final-state-list (world-fsm-machine w)))
+                              (place-image (overlay (text (symbol->string (fsm-state-name (car l))) 20 "red")
+                                                    (overlay
+                                                     (circle 20 "outline" END-STATE-COLOR)
+                                                     (circle 25 "outline" END-STATE-COLOR)))
+                                           (posn-x (fsm-state-posn (car l)))
+                                           (posn-y (fsm-state-posn (car l)))
+                                           (draw-states (cdr l) (add1 i) s))]
+                             [else (place-image (text  (symbol->string (fsm-state-name (car l))) 25 "black")
+                                                (posn-x (fsm-state-posn  (car l)))
+                                                (posn-y (fsm-state-posn (car l)))
+                                                (draw-states (cdr l) (add1 i) s))]))))
+
+       ;; draw-inner-with-prev: none -> image
+       ;; Purpose: Creates the inner circle that contains the arrows and the prevous state pointer
+       (draw-inner-with-prev (lambda()
+                               (overlay
+                                (circle 5 "solid" "red")
+                                (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
+                                                                                                                            '||
+                                                                                                                            (cadr (world-cur-rule w))))
+                                (inner-circle2 (- 360 (* (get-state-index state-list (car (getCurRule (world-processed-config-list w))) 0) deg-shift)))
+                                (circle inner-R "outline" "transparent"))))
+
+       ;; draw-inner-with-prev: none -> image
+       ;; Purpose: Creates the inner circle that contains the arrows
+       (draw-inner-no-prev (lambda()
+                             (overlay
+                              (circle 5 "solid" "red")
+                              (inner-circle1 (- 360 (* (get-state-index state-list (world-cur-state w) 0) deg-shift)) (if (or (equal? 'null (cadr (world-cur-rule w))) (equal? 'empty (cadr (world-cur-rule w))))
+                                                                                                                          '||
+                                                                                                                          (cadr (world-cur-rule w))))
+                              (circle inner-R "outline" "transparent"))))
+       
+       ;; inner-circle1: num symbol -> image
+       ;; Purpose: draws an arrow with the given symbol above it and then rotates it by the given degreese
+       (inner-circle1 (lambda(deg sym)
+                        (letrec
+                            (
+                             ;; arrow: none -> image
+                             ;; Purpose: draws a arrow
+                             (arrow (lambda ()
+                                      (overlay/offset 
+                                       (text (symbol->string sym) 18 "red")
+                                       15 15
+                                       (beside/align "center"
+                                                     (rectangle (- inner-R 15) 5 "solid" "black")
+                                                     (rotate 270 (triangle 15 "solid" "black"))))))
+
+                             ;; down-arrow: none -> image
+                             ;; Purpose: creates an upside-down arrow
+                             (down-arrow (lambda ()
+                                           (overlay/offset 
+                                            (rotate 180 (text (symbol->string sym) 18 "red"))
+                                            15 -15
+                                            (beside/align "center"
+                                                          (rectangle (- inner-R 15) 5 "solid" "black")
+                                                          (rotate 270 (triangle 15 "solid" "black")))))))
+                          (cond
+                            ;; if if the rotate deg is > 90 and < 180, if so then use the upside-down arrow
+                            [(and (> deg 90) (< deg 270))
+                             (rotate deg (overlay/offset
+                                          (down-arrow)
+                                          -65 -8
+                                          (circle inner-R "outline" "transparent")))]
+                            [else
+                             (rotate deg (overlay/offset
+                                          (arrow)
+                                          -65 8
+                                          (circle inner-R "outline" "transparent")))]))))
+
+       ;; inner-circle2: num -> image
+       ;; Purpose: Draws a doted line and rotates it by the given degreese
+       (inner-circle2 (lambda (deg)
+                        (letrec
+                            ((dot-line (lambda ()
+                                         (beside
+                                          (line (- inner-R 10) 0 (pen "gray" 5 "short-dash" "butt" "bevel"))
+                                          (circle 5 "solid" "gray")))))
+                          (rotate deg (overlay/align "right" "center"
+                                                     (dot-line)
+                                                     (circle inner-R "outline" "transparent"))))))
+       
+       ;; get-sate-index: list-of-states symbol num -> num
+       ;; Purpose: finds the index of the given state in the list of states. Note that a
+       ;;     state can not be repeated in the list.
+       (get-state-index (lambda (los s accum)
+                          (cond
+                            [(empty? los) -1] ;; this case should never be reached
+                            [(equal? (fsm-state-name (car los)) s) accum]
+                            [else (get-state-index (cdr los) s (add1 accum))]))))
+                            
+    ;; Check if the inner circle needs to be drawn
+    (cond
+      [(null? (world-cur-state w))
+       ;;(place-image the-circle X0 Y0 
+       (draw-states (machine-state-list (world-fsm-machine w)) 0 s)]
+      [else
+       ;; see if there is a previous state
+       (cond
+         [(empty? (cdr (world-processed-config-list w))) ;; there is not a prev state
+          (place-image (draw-inner-no-prev) X0 Y0 
+                       (draw-states (machine-state-list (world-fsm-machine w)) 0 s))]
+         [else ;; there is a prev state
+          (place-image (draw-inner-with-prev) X0 Y0 
+                       (draw-states (machine-state-list (world-fsm-machine w)) 0 s))])])))
 
 
 ;; draw-world: world -> world
@@ -751,7 +891,6 @@
                               [else (draw-window window scn WIDTH HEIGHT)])))
           
           (deg-shift (if (empty? (machine-state-list (world-fsm-machine w))) 0 (/ 360 (length (machine-state-list (world-fsm-machine w))))))
-          
           (get-x (lambda (theta rad) (truncate (+ (* rad (cos (degrees->radians theta))) X0))))
                 
           (get-y(lambda (theta rad)
@@ -792,25 +931,25 @@
                                                    (draw-states (cdr l) (add1 i) s))])))))
          
     (if (not (null? (world-cur-state w)))
-        (draw-error-msg (world-error-msg w)(place-image pointer-square X0 Y0 (place-image pointer-circle tip-x tip-y (add-line (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
-                                                                                                                                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                                                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                                                                                                    (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                                                                                                                                                 (draw-button-list (world-button-list w)
-                                                                                                                                                                                                                                   (draw-input-list (world-input-list w)
-                                                                                                                                                                                                                                                    (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
-                                                                                                                               X0 Y0 tip-x tip-y state-pen))))
+        (draw-error-msg (world-error-msg w)(draw-main-img w  
+                                                          (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                       (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
+                                                                                    (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                 (draw-button-list (world-button-list w)
+                                                                                                                   (draw-input-list (world-input-list w)
+                                                                                                                                    (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))
+                                                                                                                              
         
-        (draw-error-msg (world-error-msg w) (place-image the-circle X0 Y0 (draw-states (machine-state-list (world-fsm-machine w)) 0 
-                                                                                       (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
-                                                                                                    (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
-                                                                                                                 (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
-                                                                                                                              (draw-button-list (world-button-list w)
-                                                                                                                                                (draw-input-list (world-input-list w)
-                                                                                                                                                                 (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE))))))))))))
+        (draw-error-msg (world-error-msg w) (draw-main-img w  
+                                                           (place-image (create-gui-left) (- WIDTH 100) (/ HEIGHT 2)
+                                                                        (place-image (create-gui-top (machine-sigma-list (world-fsm-machine w)) (world-cur-rule w)) (/ WIDTH 2) (/ TOP 2)
+                                                                                     (place-image (create-gui-bottom (machine-rule-list (world-fsm-machine w)) (world-cur-rule w) (world-scroll-bar-index w)) (/ WIDTH 2) (- HEIGHT (/ BOTTOM 2))
+                                                                                                  (draw-button-list (world-button-list w)
+                                                                                                                    (draw-input-list (world-input-list w)
+                                                                                                                                     (place-image (create-gui-alpha (machine-alpha-list (world-fsm-machine w))) (/ (/ WIDTH 11) 2) (/ (- HEIGHT BOTTOM) 2) MAIN-SCENE)))))))))))
 #|
 -----------------------
-    TOP GUI RENDERING
+TOP GUI RENDERING
 -----------------------
 |# 
 
@@ -843,9 +982,10 @@
            (tape-box (lambda (sigma fnt-size index)
                        (cond
                          ;; Check if the sigmas are equal and that it is the right index in the tape input
-                         [(and (equal? sigma (cadr cur-rule)) (equal? index TAPE-INDEX))
+                         [(<= index TAPE-INDEX)
+                          ;;(and (equal? sigma (cadr cur-rule)) (equal? index TAPE-INDEX))
                           (overlay
-                           (text (symbol->string sigma) fnt-size "red")
+                           (text (symbol->string sigma) fnt-size "gray")
                            (rectangle rectWidth TOP "outline" "transparent"))]
                          [else
                           (overlay
@@ -870,7 +1010,7 @@
 
 #|
 -----------------------
-  BOTTOM GUI RENDERING
+BOTTOM GUI RENDERING
 -----------------------
 |# 
 
@@ -954,7 +1094,7 @@
 
 #|
 -----------------------
-    LEFT GUI RENDERING
+LEFT GUI RENDERING
 -----------------------
 |# 
 
@@ -1007,7 +1147,7 @@
 
 #|
 -----------------------
-  RIGHT GUI RENDERING
+RIGHT GUI RENDERING
 -----------------------
 |# 
   
@@ -1052,7 +1192,7 @@
 
 #|
 -----------------------------
-  ADDITIONAL DRAW FUNCTIONS
+ADDITIONAL DRAW FUNCTIONS
 -----------------------------
 |# 
   
@@ -1069,7 +1209,7 @@
 (define (control-header2 msg)
   (overlay
    (text/font (string-upcase msg) 14 "Black"
-             #f 'default 'normal 'normal #t)
+              #f 'default 'normal 'normal #t)
    ;;(text (string-upcase msg) 14 "Black")
    (rectangle (/ WIDTH 11) 40 "outline" "transparent")))
 
@@ -1092,7 +1232,7 @@
 
 #|
 ------------------
-  EVENT HANDLERS
+EVENT HANDLERS
 ------------------
 |# 
 
@@ -1199,7 +1339,7 @@
 
 #|
 ---------------------------
-  WORLD DRAWING FUNCTIONS
+WORLD DRAWING FUNCTIONS
 ---------------------------
 |# 
 
