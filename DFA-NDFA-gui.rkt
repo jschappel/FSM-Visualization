@@ -1,4 +1,10 @@
 #lang racket
+#| *** FSM Graphical User Interface ***
+    Developed by: Marco T. Morazan, Joshua Schappel, and Sachin Mahashabde in 2019. (names in no particular order)
+    Goal: Build a GUI for the fsm library in order to help students be able to visualize the machines that the library
+            has to offer.
+|#
+
 (require 2htdp/image 2htdp/universe fsm net/sendurl racket/date readline "button.rkt" "posn.rkt" "state.rkt" "input.rkt" "msgWindow.rkt" "machine.rkt")
 
 ;; GLOBAL VALIRABLES
@@ -200,24 +206,25 @@ Button onClick Functions
                     
                      (cond
                        [(equal? "" start-state) (redraw-world w)]
-                       [(and (null? (machine-start-state (world-fsm-machine w))) (ormap(lambda(x) (equal? (string->symbol start-state) x)) (machine-state-list (world-fsm-machine w))))
+                       [(and (null? (machine-start-state (world-fsm-machine w))) (ormap (lambda(x) (equal? start-state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w))))
+                                                                                         ;;(equal? (string->symbol start-state) x)) (machine-state-list (world-fsm-machine w))))
                         (begin
                           (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                           (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
-                                 (string->symbol start-state) (world-button-list w) new-input-list
+                                 null (world-button-list w) new-input-list
                                  (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                        [ (null? (machine-start-state (world-fsm-machine w)))
                          (begin
                            (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
-                                  (string->symbol start-state) (world-button-list w) new-input-list
+                                  null (world-button-list w) new-input-list
                                   (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
-                       [ (ormap (lambda (x) (equal? start-state x)) (machine-state-list (world-fsm-machine w)))
+                       [ (ormap (lambda (x) (equal? start-state (symbol->string (fsm-state-name x)))) (machine-state-list (world-fsm-machine w)))
                          (begin
                            (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                            (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
-                                  (string->symbol start-state) (world-button-list w) new-input-list
+                                  null (world-button-list w) new-input-list
                                   (world-processed-config-list w) (world-unporcessed-config-list w)(world-error-msg w) (world-scroll-bar-index w)))]
                        [else w]))))
 
@@ -231,19 +238,19 @@ Button onClick Functions
                          (cond
                            [(equal? "" start-state) (redraw-world w)]
                            
-                           [ (ormap (lambda (x) (equal? (string->symbol start-state) x)) (machine-state-list (world-fsm-machine w)))
+                           [ (ormap (lambda (x) (equal? (string->symbol start-state)(fsm-state-name x))) (machine-state-list (world-fsm-machine w)))
                              (begin
                                (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                                (world (world-fsm-machine w) (world-tape-position w) (world-cur-rule w)
-                                      (string->symbol start-state) (world-button-list w) new-input-list
+                                      null (world-button-list w) new-input-list
                                       (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]
                            
                            [else
                             (begin
-                              (set-machine-state-list! (world-fsm-machine w) (cons (string->symbol start-state) (machine-state-list (world-fsm-machine w))))
+                              (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol start-state) TRUE-FUNCTION (posn 0 0))  (machine-state-list (world-fsm-machine w))))
                               (set-machine-start-state! (world-fsm-machine w) (string->symbol start-state))
                               (world (world-fsm-machine w)(world-tape-position w) (world-cur-rule w)
-                                     (string->symbol start-state) (world-button-list w) new-input-list
+                                     null (world-button-list w) new-input-list
                                      (world-processed-config-list w) (world-unporcessed-config-list w) (world-error-msg w) (world-scroll-bar-index w)))]))))
 
 ;; addEnd: world -> world
@@ -254,16 +261,16 @@ Button onClick Functions
                       (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
                    (cond
                      [(equal? "" end-state) (redraw-world w)]
-                     [(ormap (lambda (x) (equal? x (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
+                     [(ormap (lambda (x) (equal? (fsm-state-name x) (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
                       (begin
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]
                      [else
                       (begin
-                        (set-machine-state-list! (world-fsm-machine w) (cons(fsm-state (string->symbol end-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
+                        (set-machine-state-list! (world-fsm-machine w) (cons (fsm-state (string->symbol end-state) TRUE-FUNCTION (posn 0 0)) (machine-state-list (world-fsm-machine w))))
                         (set-machine-final-state-list! (world-fsm-machine w) (remove-duplicates (cons (string->symbol end-state) (machine-final-state-list (world-fsm-machine w)))))
                         (create-new-world-input w new-input-list))]))))
-                      
+                
 
 ;; rmvEnd: world -> world
 ;; Purpose: removes a end state from the world-final-state-list
@@ -273,7 +280,7 @@ Button onClick Functions
                       (new-input-list (list-set (world-input-list w) 3 (remove-text (list-ref (world-input-list w) 3) 100))))
                    (cond
                      [(equal? "" end-state) (redraw-world w)]
-                     [(ormap (lambda(x) (equal? x (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
+                     [(ormap (lambda(x) (equal? (fsm-state-name x) (string->symbol end-state))) (machine-state-list (world-fsm-machine w)))
                       (begin
                         (set-machine-final-state-list! (world-fsm-machine w) (remove (string->symbol end-state) (machine-final-state-list (world-fsm-machine w))))
                         (create-new-world-input w new-input-list))]
@@ -882,6 +889,7 @@ Scene Rendering
                             [else (get-state-index (cdr los) s (add1 accum))]))))
                             
     ;; Check if the inner circle needs to be drawn
+    (println (world-cur-state w))
     (cond
       [(null? (world-cur-state w))
        ;;(place-image the-circle X0 Y0 
