@@ -548,7 +548,7 @@ Button onClick Functions
                                                                                            [else (string-append (number->string (date-hour d)) ":" formatt-date-minute "am")]))))
                                                                   (cond
                                                                     [status (string-append ";; Created by fsm-GUI on: " formatt-date " at " (formatt-time)"\n;; This machine passed all tests.")]
-                                                                    [else (string-append ";; Created by fsm-GUI on: " formatt-date " at " (formatt-time)"\n;; WARNIMG: this machine failed to build!")])))))
+                                                                    [else (string-append ";; Created by fsm-GUI on: " formatt-date " at " (formatt-time)"\n;; WARNING: this machine failed to build!")])))))
                                              (cond
                                                [(file-exists? file) (call-with-output-file file
                                                                       #:exists 'append
