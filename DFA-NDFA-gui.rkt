@@ -927,7 +927,7 @@ Scene Rendering
                             (
                              (state-color (determin-inv
                                            (fsm-state-function (list-ref (machine-state-list (world-fsm-machine w)) index))
-                                           (world-processed-config-list w)))
+                                           (take (machine-sigma-list (world-fsm-machine w)) (if (< TAPE-INDEX 0) 0 (add1 TAPE-INDEX)))))
                              ;; arrow: none -> image
                              ;; Purpose: draws a arrow
                              (arrow (lambda ()
