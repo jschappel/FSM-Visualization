@@ -20,14 +20,23 @@
 (define TRUE-FUNCTION (lambda (v) '())) ;; The default function for a state variable
 (define TAPE-INDEX -1) ;; The current tape input that is being used
 
+;; COLORS FOR GUI
+(define CONTROLLER-BUTTON-COLOR (make-color 0 61 191))
+(define INPUT-COLOR (make-color 186 190 191))
+(define START-STATE-COLOR (make-color 6 142 60))
+(define END-STATE-COLOR (make-color 219 9 9))
+(define MSG-ERROR (make-color 255 0 0))
+(define MSG-SUCCESS (make-color 65 122 67))
+(define MSG-CAUTION (make-color 252 156 10))
+
 ;; CIRCLE VARIABLES
 (define X0  (/ (+ (/ WIDTH 11) (- WIDTH 200)) 2))
 (define Y0 (/ (+ TOP (- HEIGHT BOTTOM)) 2))
 (define R 175)
 (define inner-R (- R 50))
-(define CENTER-CIRCLE (circle 5 "solid" "red"))
-(define TRUE-INV (make-color 17 92 7)) ;; Color for passed invarient
-(define FALSE-INV (make-color 214 2 2)) ;; Color for failed invarient
+(define CENTER-CIRCLE (circle 5 "solid" CONTROLLER-BUTTON-COLOR))
+(define TRUE-INV (make-color 0 171 3)) ;; Color for passed invarient
+(define FALSE-INV (make-color 245 35 20)) ;; Color for failed invarient
 
 ;; Remove the following if draw function works out
 (define the-circle (circle R "outline" "transparent"))
@@ -79,14 +88,7 @@
 (define ALPHA-LIST '()) ;; TODO
 (define INIT-INDEX 0) ;; The initail index of the scrollbar
 
-;; COLORS FOR GUI
-(define CONTROLLER-BUTTON-COLOR (make-color 0 61 191)) ;;(make-color 48 63 159))
-(define INPUT-COLOR (make-color 186 190 191)) ;;(make-color 255 193 7))
-(define START-STATE-COLOR (make-color 6 142 60))
-(define END-STATE-COLOR (make-color 219 9 9))
-(define MSG-ERROR (make-color 255 0 0))
-(define MSG-SUCCESS (make-color 65 122 67))
-(define MSG-CAUTION (make-color 252 156 10))
+
 
 
 
@@ -499,25 +501,21 @@ Button onClick Functions
                           (type (machine-type (world-fsm-machine w)))
                           
                           (fsm-machine (world-fsm-machine w)) ;; The machine for the world
-                          ;; nameGen: null -> symbol
-                          ;; Purpose: generates a random name that consists of one capital letter(A-Z) and one number(1-9)
-                          ;;   for the mechine being created.
-                          (nameGen (lambda ()
-                                     (let ((letter (string (integer->char (random 65 91))))
-                                           (number (string (integer->char (random 48 58)))))
-                                       (string->symbol (string-append letter number)))))
-
+                          ;; condensed state list
+                          (state-list (map (lambda (x) (fsm-state-name x)) (machine-state-list (world-fsm-machine w))))
+                         
                           ;; construct-machine: list-of-states symbol list-of-finals list-of-rules list-of-alpha symbol
                           ;; Purpose: Constructs the code to create the specified machine
                           (construct-machine (lambda (states start finals rules alpha type)
                                                (letrec (
-                                                        ;; nameGen: null -> symbol
+                                                        ;; nameGen: none -> symbol
                                                         ;; Purpose: generates a random name that consists of one capital letter(A-Z) and one number(1-9)
                                                         ;;   for the mechine being created.
                                                         (nameGen (lambda ()
                                                                    (let ((letter (string (integer->char (random 65 91))))
-                                                                         (number (string (integer->char (random 48 58)))))
-                                                                     (string->symbol (string-append letter number))))))
+                                                                         (number (string (integer->char (random 48 58))))
+                                                                         (number2 (string (integer->char (random 48 58)))))
+                                                                     (string->symbol (string-append letter number number2))))))
                       
                                                  (case type
                                                    [(dfa) `(define ,(nameGen) (make-dfa (quote (,@states)) (quote (,@alpha)) (quote ,start) (quote ,finals) (quote (,@rules))))]
@@ -555,7 +553,7 @@ Button onClick Functions
                                                [(file-exists? file) (call-with-output-file file
                                                                       #:exists 'append
                                                                       (lambda (out)
-                                                                        (displayln "" out)
+                                                                        (displayln " " out)
                                                                         (displayln (comments status) out)
                                                                         (displayln machine out)))]
                                                [else (call-with-output-file file
@@ -567,35 +565,36 @@ Button onClick Functions
                                                          (displayln machine out)))])))))
 
                     (cond
-                      [(equal? #t (check-machine (machine-state-list fsm-machine) (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
-                       (let (
-                             (fsm-machine (world-fsm-machine w)))
-                         (begin
-                           (write-to-file
-                            "fsmGUIFunctions.rkt"
-                            (construct-machine
-                             (machine-state-list fsm-machine)
-                             (machine-start-state fsm-machine)
-                             (machine-final-state-list fsm-machine)
-                             (machine-rule-list fsm-machine)
-                             (machine-alpha-list fsm-machine)
-                             (machine-type fsm-machine))
-                            #t)
-                           (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory))) "Success!" MSG-SUCCESS)))]
+                      [(equal? #t (check-machine state-list (machine-alpha-list fsm-machine) (machine-final-state-list fsm-machine) (machine-rule-list fsm-machine) (machine-start-state fsm-machine) (machine-type fsm-machine)))
+                       (begin
+                         (write-to-file
+                          "fsmGUIFunctions.rkt"
+                          (construct-machine
+                           state-list
+                           (machine-start-state fsm-machine)
+                           (machine-final-state-list fsm-machine)
+                           (machine-rule-list fsm-machine)
+                           (machine-alpha-list fsm-machine)
+                           (machine-type fsm-machine))
+                          #t)
+                         (redraw-world-with-msg w (string-append "The machine was sucessfuly built and exported to fsmGUIFunctions.rkt. This file can be found at: ~n "
+                                                                 (path->string (current-directory))) "Success!" MSG-SUCCESS))]
 
                       [else
                        (begin
                          (write-to-file
                           "fsmGUIFunctions.rkt"
                           (construct-machine
-                           (machine-state-list fsm-machine)
+                           state-list
                            (machine-start-state fsm-machine)
                            (machine-final-state-list fsm-machine)
                            (machine-rule-list fsm-machine)
                            (machine-alpha-list fsm-machine)
                            (machine-type fsm-machine))
                           #f)
-                         (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n " (path->string (current-directory)) "Please fix the erros and press Gen Code again.") "Error" MSG-ERROR))]))))
+                         (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n "
+                                                                 (path->string (current-directory)) "Please fix the erros and press Gen Code again.")
+                                                "Error" MSG-ERROR))]))))
 
 
 
@@ -720,8 +719,8 @@ Button Declarations
 (define BTN-RUN (button 95 30 "Run" "solid" (make-color 4 120 40) (make-color 4 120 40) 25 #f #f (posn 55 105) runProgram))
 (define BTN-HELP (button 25 25 "?" "solid" (make-color 39 168 242) (make-color 39 168 242) 15 #t #f (posn 130 80) openHelp))
 
-(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 140) showNext))
-(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 252 130 73) (make-color 252 130 73) 25 #f #f (posn 55 175) showPrev))
+(define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 116 156 188) (make-color 116 156 188) 25 #f #f (posn 55 140) showNext))
+(define BTN-PREV (button 95 30 "<= PREV" "solid" (make-color 116 156 188) (make-color 116 156 188) 25 #f #f (posn 55 175) showPrev))
 (define BTN-GENCODE (button 95 50 "GEN CODE" "solid" (make-color 240 79 77) (make-color 240 79 77) 30 #f #f (posn 55 220) genCode))
 
 (define BTN-SIGMA-ADD (button 40 25 "ADD" "solid" CONTROLLER-BUTTON-COLOR CONTROLLER-BUTTON-COLOR 20 #f #f (posn 30 70) addSigma))

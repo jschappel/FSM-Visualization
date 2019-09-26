@@ -26,7 +26,7 @@
                       (rotate 180 (text (symbol->string sym) 18 "red"))
                       15 -15
                       (beside/align "center"
-                                    (rectangle (- INNER-R 15) 5 "solid" "pink")
+                                    (rectangle (- INNER-R 15) 5 "outline" "pink")
                                     (rotate 270 (triangle 15 "solid" "pink")))))))
     (cond
       ;; if if the rotate deg is > 90 and < 180, if so then use the upside-down arrow
