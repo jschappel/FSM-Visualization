@@ -1,5 +1,5 @@
 # FSM-Visualization
 
-A FSM GUI built by Marco T. Morazan, Joshua Schappel, and Sachin Mahashabde
+A grapical visualization tool built by Marco T. Morazan, Joshua Schappel, and Sachin Mahashabde for classroom [automata theory](https://github.com/morazanm/fsm)
 
 (names in no particular order)
