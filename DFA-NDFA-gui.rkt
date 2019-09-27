@@ -21,7 +21,7 @@
 (define TAPE-INDEX -1) ;; The current tape input that is being used
 
 ;; COLORS FOR GUI
-(define CONTROLLER-BUTTON-COLOR (make-color 0 61 191))
+(define CONTROLLER-BUTTON-COLOR (make-color 33 93 222))
 (define INPUT-COLOR (make-color 186 190 191))
 (define START-STATE-COLOR (make-color 6 142 60))
 (define END-STATE-COLOR (make-color 219 9 9))
@@ -341,6 +341,8 @@ Button onClick Functions
 
                      (cond
                        [(equal? input-value "") (redraw-world w)]
+                       [(equal? 17 (add1 (length (machine-alpha-list (world-fsm-machine w)))))
+                        (redraw-world-with-msg w "You have reached the maximum amount of characters for the alphabet" "Error" MSG-CAUTION)]
                        [else
                         (begin
                           (set! TAPE-INDEX -1)
@@ -593,7 +595,7 @@ Button onClick Functions
                            (machine-type fsm-machine))
                           #f)
                          (redraw-world-with-msg w (string-append "The machine built with errors! Please see the cmd for more info. ~n ~n The machine was exported to fsmGUIFunctions.rkt. This file can be found at: ~n "
-                                                                 (path->string (current-directory)) "Please fix the erros and press Gen Code again.")
+                                                                 (path->string (current-directory)) "Please fix the erros and press 'Run' again.")
                                                 "Error" MSG-ERROR))]))))
 
 
@@ -635,7 +637,7 @@ Button onClick Functions
                     [else
                      ;; Check if the unprocessed list is empty. If so then gencode was not yet pressed
                      (cond
-                       [(empty? (world-unporcessed-config-list w)) (redraw-world-with-msg w "You must build your machine before you can continue. Please press Run to proceed." "Error" MSG-CAUTION)]
+                       [(empty? (world-unporcessed-config-list w)) (redraw-world-with-msg w "You must build your machine before you can continue. Please press 'Run' to proceed." "Error" MSG-CAUTION)]
                        [else
                         (let(
                              (nextState (car (world-unporcessed-config-list w)))
@@ -643,9 +645,9 @@ Button onClick Functions
                     
                           (cond
                             [(eq? nextState 'accept)
-                             (redraw-world-with-msg w "The input was accepted." "Success" MSG-SUCCESS)]
+                             (redraw-world-with-msg w "The input is accepted." "Success" MSG-SUCCESS)]
                             [(eq? nextState 'reject)
-                             (redraw-world-with-msg w "The input was rejected." "Notice" MSG-CAUTION)]
+                             (redraw-world-with-msg w "The input is rejected." "Notice" MSG-CAUTION)]
                             [else
                              (set! TAPE-INDEX (+ 1 TAPE-INDEX))
                              (world (world-fsm-machine w) (world-tape-position w) (getCurRule (append (list nextState) (world-processed-config-list w)))
@@ -657,7 +659,7 @@ Button onClick Functions
 ;; shows the previous state that the machine was in
 (define showPrev (lambda(w)
                    (cond
-                     [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape, then press Run and try again" "Notice" MSG-CAUTION)]
+                     [(empty? (world-processed-config-list w)) (redraw-world-with-msg w "The tape is currently empty. Please add variables to the tape, then press 'Run'" "Notice" MSG-CAUTION)]
                      [(empty? (cdr (world-processed-config-list w))) (redraw-world-with-msg w "You have reached the beginning of the machine! There are no more previous states." "Notice" MSG-CAUTION)]
                      [else
                       (let(
@@ -716,7 +718,7 @@ Button Declarations
 
 
 
-(define BTN-RUN (button 95 30 "Run" "solid" (make-color 4 120 40) (make-color 4 120 40) 25 #f #f (posn 55 105) runProgram))
+(define BTN-RUN (button 95 30 "Run" "solid" (make-color 29 153 68) (make-color 29 153 68) 25 #f #f (posn 55 105) runProgram))
 (define BTN-HELP (button 25 25 "?" "solid" (make-color 39 168 242) (make-color 39 168 242) 15 #t #f (posn 130 80) openHelp))
 
 (define BTN-NEXT (button 95 30 "NEXT =>" "solid" (make-color 116 156 188) (make-color 116 156 188) 25 #f #f (posn 55 140) showNext))
@@ -745,13 +747,13 @@ Textbox Declarations
 |# 
 
 (define IPF-STATE (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 5 (posn (- WIDTH 100) (- CONTROL-BOX-H 70)) #f))
-(define IPF-ALPHA (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
-(define IPF-START (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
-(define IPF-END (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 10 (posn (- WIDTH 150) (- (* 4 CONTROL-BOX-H) 50)) #f))
+(define IPF-ALPHA (textbox 150 25 INPUT-COLOR INPUT-COLOR "" 1 (posn (- WIDTH 100) (- (* 2 CONTROL-BOX-H) 70)) #f))
+(define IPF-START (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 5 (posn (- WIDTH 150) (- (* 3 CONTROL-BOX-H) 50)) #f))
+(define IPF-END (textbox 75 25 INPUT-COLOR INPUT-COLOR "" 5 (posn (- WIDTH 150) (- (* 4 CONTROL-BOX-H) 50)) #f))
 (define IPF-RULE1 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 150) (- (* 5 CONTROL-BOX-H) 70)) #f))
 (define IPF-RULE2 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 100) (- (* 5 CONTROL-BOX-H) 70)) #f))
 (define IPF-RULE3 (textbox 40 25 INPUT-COLOR INPUT-COLOR "" 4 (posn (- WIDTH 50) (- (* 5 CONTROL-BOX-H) 70)) #f))
-(define IPF-SIGMA (textbox 90 25 INPUT-COLOR INPUT-COLOR "" 100 (posn (/ (/ WIDTH 11) 2) 40) #f))
+(define IPF-SIGMA (textbox 90 25 INPUT-COLOR INPUT-COLOR "" 8 (posn (/ (/ WIDTH 11) 2) 40) #f))
 
 ;; INPUT-LIST: A list containing all input fields that are displayed on the scene.
 (define INPUT-LIST (list IPF-STATE IPF-ALPHA IPF-START IPF-END IPF-RULE1 IPF-RULE2 IPF-RULE3 IPF-SIGMA))
@@ -807,11 +809,11 @@ Cmd Functions
        (case (sm-type fsm-machine) ;; Pre-made with no predicates
          [(dfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x TRUE-FUNCTION (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                          (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press 'Run' to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          
          [(ndfa) (run-program (create-init-world (machine (map (lambda (x) (fsm-state x TRUE-FUNCTION (posn 0 0))) (sm-getstates fsm-machine)) (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                           (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
+                                                 (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press 'Run' to start simulation." "ndfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS)))]
          [(pda) (println "TODO ADD PDA")]
          [(dfst) (println "TODO ADD DFST")])]
       
@@ -833,7 +835,7 @@ Cmd Functions
                                                                 (fsm-state x (cadr temp) (posn 0 0))))) state-list)
                                                    (sm-getstart fsm-machine) (sm-getfinals fsm-machine)
                                                    (reverse (sm-getrules fsm-machine)) '() (sm-getalphabet fsm-machine) (sm-type fsm-machine))
-                                         (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press Run to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))])))
+                                         (msgWindow "The pre-made machine was added to the program. Please add variables to the Tape Input and then press 'Run' to start simulation." "dfa" (posn (/ WIDTH 2) (/ HEIGHT 2)) MSG-SUCCESS))))])))
 
 
 
@@ -1459,7 +1461,7 @@ EVENT HANDLERS
                              [else (cons (remove-text (car loi) 1) (check-and-add (cdr loi) action))])]
                           [else (cons (car loi) (check-and-add (cdr loi) action))]))))
     (cond
-      [(and (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z") (string<=? "1" (string-downcase k) "9")) (and (not (equal? k "shift")) (not (equal? k "rshift"))))
+      [(and (equal? 1 (string-length k)) (or (or (key=? k "-") (key=? k " "))(string<=? "a" (string-downcase k) "z") (string<=? "1" (string-downcase k) "9")))
        (create-new-world-input w (check-and-add (world-input-list w) #t))]
       [(key=? k "\b") (create-new-world-input w (check-and-add (world-input-list w) #f))]
       [else w])))
