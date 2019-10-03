@@ -973,7 +973,7 @@ Scene Rendering
                                           (circle 5 "solid" "gray")))))
                           (rotate deg (overlay/align "right" "center"
                                                      (dot-line)
-                                                     (circle inner-R "outline" "transparent"))))))
+                                                     (circle (+ inner-R 10) "outline" "transparent"))))))
        
        ;; get-sate-index: list-of-states symbol num -> num
        ;; Purpose: finds the index of the given state in the list of states. Note that a

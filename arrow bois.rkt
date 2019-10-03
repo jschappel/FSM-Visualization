@@ -47,11 +47,11 @@
   (letrec
       ((dot-line (lambda ()
                    (beside
-                    (line (- INNER-R 10) 0 (pen "gray" 5 "short-dash" "butt" "bevel"))
+                    (line INNER-R 0 (pen "gray" 5 "short-dash" "butt" "bevel"))
                     (circle 5 "solid" "gray")))))
     (rotate deg (overlay/align "right" "center"
                                (dot-line)
-                               (circle INNER-R "outline" "transparent")))))
+                               (circle (+ 20 INNER-R) "outline" "transparent")))))
 
 ;; MAIN DRIVER
 (define (draw-all)
