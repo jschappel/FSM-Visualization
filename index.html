@@ -6,13 +6,16 @@
     <title>FSM</title>
     <meta name="description" content="The FSM Library">
     <meta name="author" content="SitePoint">
+    <link rel="shortcut icon" href="./favicon.ico" type="image/x-icon">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./font-awesome/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="#">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand">
             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Racket-logo.svg/1200px-Racket-logo.svg.png" width="30" height="30" alt="" loading="lazy">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,10 +24,17 @@
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
             <a class="nav-item nav-link active" href="#">Home <span class="sr-only">(current)</span></a>
-            <a class="nav-item nav-link" href="./examples.html">Examples</a>
+            <a class="nav-item nav-link" href="./examples.html">Examples <i class="fa fa-code" aria-hidden="true"></i></a>
             <a class="nav-item nav-link" href="https://htmlpreview.github.io/?https://github.com/morazanm/fsm/blob/master/doc/fsm/index.html">
-                Documentation</a>
-            <a class="nav-item nav-link" href="./download.html">Download</a>
+                Documentation <i class="fa fa-file-text-o" aria-hidden="true"></i></a>
+            <a class="nav-item nav-link" href="./download.html">Download <i class="fa fa-download" aria-hidden="true"></i></a>
+          </div>
+        </div>
+        <div class="collapse navbar-collapse">
+          <div class="navbar-nav ml-auto">
+            <a class="nav-item nav-link" href="https://github.com/morazanm/fsm/issues/new?assignees=morazanm%2C+jschappel%2C+sachinmahashabde&labels=bug&template=bug_report.md&title=%5BBUG%5D">
+              Report <i class="fa fa-bug" aria-hidden="true"></i></a>
+            <a class="nav-item nav-link" href="https://github.com/morazanm/fsm"><i class="fa fa-github" aria-hidden="true"></i></a>
           </div>
         </div>
       </nav>
@@ -34,10 +44,10 @@
         <p class="lead">A Library for the Automata Theory Classroom</p>
         <hr class="my-4">
         <p>FSM is a Domain Specific Language (DSL) designed to construct and manipulate state machines and their grammars. 
-            <br /> Interested in FSM? Click the download link above, follow the instructions, then click below for examples.
+            <br /> Interested in FSM? <br/> Click the download link below and follow the instructions to get started.
         </p>
         <br />
-        <a class="btn btn-primary btn-lg" href="#" role="button">Examples</a>
+        <a class="btn btn-dark btn-lg" href="./download.html" role="button">Download <i class="fa fa-download" aria-hidden="true"></i></a>
       </div>
     
       <div class="container justify-content-center pb-5">
@@ -91,19 +101,19 @@
               <div class="col-lg-4 col-md-6 pb-3">
                 <div class="card" style="width: 18rem;">
                     <div class="card-body">
-                      <h5 class="card-title">FSM Error Messages</h5>
-                      <h6 class="card-subtitle mb-2 text-muted">Marco T. Morazán, Josephine A. Des Rosiers</h6>
-                      <p class="card-text">Computer Science students, in general, find Automata Theory difficult and mostly unrelated to their area of study. To mitigate these perceptions, FSM...</p>
+                      <h5 class="card-title">Visual Designing and Debugging of Deterministic Finite-State Machines in FSM</h5>
+                      <h6 class="card-subtitle mb-2 text-muted">Marco T Morazán, Joshua Schappel, Sachin Mahashabde</h6>
+                      <p class="card-text">This article presents a visualization tool for designing and debugging deterministic ﬁnite-state machines in FSM–a domain speciﬁc language for the automata theory classroom. Like other...</p>
                       <a href="https://arxiv.org/abs/1906.11421v1" class="card-link">Link to article</a>
                     </div>
                   </div>
             </div>
-            <div class="col-lg-4 col-md-6 pb-3">
+              <div class="col-lg-4 col-md-6 pb-3">
                 <div class="card" style="width: 18rem;">
                     <div class="card-body">
-                      <h5 class="card-title">Visual Designing and Debugging of Deterministic Finite-State Machines in FSM</h5>
-                      <h6 class="card-subtitle mb-2 text-muted">Marco T Morazán, Joshua Schappel, Sachin Mahashabde</h6>
-                      <p class="card-text">This article presents a visualization tool for designing and debugging deterministic ﬁnite-state machines in FSM–a domain speciﬁc language for the automata theory classroom. Like other...</p>
+                      <h5 class="card-title">FSM Error Messages</h5>
+                      <h6 class="card-subtitle mb-2 text-muted">Marco T. Morazán, Josephine A. Des Rosiers</h6>
+                      <p class="card-text">Computer Science students, in general, find Automata Theory difficult and mostly unrelated to their area of study. To mitigate these perceptions, FSM...</p>
                       <a href="https://arxiv.org/abs/1906.11421v1" class="card-link">Link to article</a>
                     </div>
                   </div>
@@ -119,4 +129,9 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
     <script src="js/scripts.js"></script>
 </body>
+
+<footer class="mt-5">
+  <hr />
+  <p class="text-center">Developed with <i class="fa fa-coffee" aria-hidden="true"></i> and  <i class="fa fa-heart" aria-hidden="true"> using <a href="https://getbootstrap.com/">Bootstrap</a> and <a href="https://fontawesome.com/">Font Awesome</a></i></p>
+</footer>
 </html>
