@@ -19,3 +19,12 @@
 #test {
     background-color: coral;
 }
+
+#exampleImage {
+    max-width: 700px;
+    max-height: 400px;
+}
+
+#caption {
+    font-size: 12px;
+}

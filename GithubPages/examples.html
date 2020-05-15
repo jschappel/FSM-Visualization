@@ -25,7 +25,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
           <div class="navbar-nav">
-            <a class="nav-item nav-link" href="../index.html">Home</a>
+            <a class="nav-item nav-link" href="../index.html">Home <i class="fa fa-home" aria-hidden="true"></i></a>
             <a class="nav-item nav-link active" href="#">Examples <i class="fa fa-code" aria-hidden="true"></i><span class="sr-only">(current)</span></a>
             <a class="nav-item nav-link" href="https://htmlpreview.github.io/?https://github.com/morazanm/fsm/blob/master/doc/fsm/index.html">
                 Documentation <i class="fa fa-file-text-o" aria-hidden="true"></i></a>
@@ -41,12 +41,27 @@
         </div>
     </nav>
 
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+          <h1 class="display-4">Examples</h1>
+          <p class="lead">How to build, visualize, and manipulate machines .</p>
+      </div>
+    </div>
+      <nav class="nav justify-content-center">
+        <a class="nav-link active" href="#construct">Constructing Machines</a>
+        <a class="nav-link" href="#visualize">Visualizing Machines</a>
+        <a class="nav-link" href="#accessors">Accessors and Mutators</a>
+      </nav>
+      <hr class="mb-5"/>
+
     <div class="container justify-content-center pb-5">
-        <h1 class="display-4 text-center pb-5">Examples</h1>
-        <h4 class="text-center">Building DFAs</h4>
+        <h3 id="construct">Constructing Machines</h3>
+          <div class="row ml-3 mb-4">
+          <p>Here you can find examples of how to construct state machines in FSM.</p>
+        </div>
+          <h4 class="text-center">Building DFAs</h4>
         <div class="row justify-content-center pb-5">
-            <pre><code class="language-racket">
-(require fsm)
+            <pre><code class="language-racket">(require fsm)
 ; L(a*a) = {w | w starts and ends with an a}
 (define a*a (make-dfa '(S F A)         ;the states
                       '(a b)           ;the alphabet
@@ -56,15 +71,13 @@
                         (F a F)
                         (F b A)
                         (A a F)
-                        (A b A))))
-            </code></pre>
+                        (A b A))))</code></pre>
         </div>
 
         
         <h4 class="text-center">Building NDFAs</h4>
         <div class="row justify-content-center pb-5">
-            <pre><code class="language-racket">
-(require fsm)
+            <pre><code class="language-racket">(require fsm)
 
 ; L(KLEENESTAR-abUaba) = (abUaba)*
 (define KLEENESTAR-abUaba (make-ndfa '(Q-0 Q-1 Q-2 Q-3 Q-4 Q-5) ;the states
@@ -77,14 +90,12 @@
                                        (Q-3 ,EMP Q-0)
                                        (Q-0 a Q-4)
                                        (Q-4 b Q-5)
-                                       (Q-5 ,EMP Q-0))))
-            </code></pre>
+                                       (Q-5 ,EMP Q-0))))</code></pre>
         </div>
 
         <h4 class="text-center">Building PDAs</h4>
         <div class="row justify-content-center pb-5">
-            <pre><code class="language-racket">
-    (require fsm)
+            <pre><code class="language-racket">(require fsm)
 
     ; L = {wcw^r | w in {a, b)*}
     (define pda-wcw^r (make-ndpda '(S M N F)                  ;the states
@@ -98,16 +109,14 @@
                                     ((M c ,EMP) (N ,EMP))
                                     ((N a (a)) (N ,EMP))
                                     ((N b (b)) (N ,EMP))
-                                    ((N ,EMP ,EMP) (F ,EMP)))))
-            </code></pre>
+                                    ((N ,EMP ,EMP) (F ,EMP)))))</code></pre>
             
         </div>
 
         <h4 class="text-center">Building TMs</h4>
         <h5 class="text-center">Turing Machines</h5>
         <div class="row justify-content-center pb-5">
-            <pre><code class="language-racket">
-(require fsm)
+            <pre><code class="language-racket">(require fsm)
 
 ; write "a" on tape
 (define Ma (make-tm '(S H)                  ;the states
@@ -117,13 +126,11 @@
                       ((S b) (H a))
                       ((S ,BLANK) (H a)))
                     'S                      ;the starting state
-                    '(H)))                  ;the halting states
-            </code></pre>
+                    '(H)))                  ;the halting states</code></pre>
         </div>
         <h5 class="text-center">Language Recognizers</h5>
         <div class="row justify-content-center pb-5">
-            <pre><code class="language-racket">
-(require fsm)
+            <pre><code class="language-racket">(require fsm)
 
 ; All a's on tape
 (define Alla (make-tm '(S Y N)        
@@ -133,9 +140,94 @@
                         ((S ,BLANK) (Y ,BLANK)))
                       'S
                       '(Y N)
-                      'Y))          ;the accepting state
-            </code></pre>
+                      'Y))          ;the accepting state</code></pre>
         </div>
+
+        <h3 id="visualize">Visualizing Machines</h4>
+          <div class="row ml-3 mb-4 mt-4">
+          <p>Here you can find examples of how to visualize state machines in FSM.</p>
+        </div>
+        <div class="row justify-content-center pb-5">
+          <pre><code class="language-racket">(require fsm)
+;; All machines can be visualized using the following three formats
+;; 1)
+;;    Use the visualization tool to build a machine from scratch
+(sm-visualize 'machine-type)   
+
+;; 2)
+;;    Use the visualization tool to view a pre-built machine
+(sm-visualize [machine])       
+
+;; 3)
+;;    Use the visualization tool to view a pre-built machine, where states
+;;     are associated with predicates
+(sm-visualize [machine] (list 'state [procedure])*)
+</code></pre>
+        </div>
+        <div class="row justify-content-center">
+          <h4>Lets visualize a machine:</h4>
+        </div>
+        <div class="row justify-content-center pb-2">
+<pre><code class="language-racket">(require fsm)
+#| From Scratch |#
+(sm-visualize 'dfa)
+
+
+#| Prebuilt |#
+;; see a*a above
+(sm-visualize a*a)
+</code></pre>
+</div>
+<div class="row justify-content-center pb-5">
+  <figure>
+  <img class="img-fluid ml-5" id="exampleImage" src="./Images/aStar.png"/>
+  <figcaption class=" text-muted text-center" id="caption" >Execution of a*a on the input: a b a b a</figcaption>
+</figure>
+</div>
+<div class="row justify-content-center pb-2">
+<pre><code class="language-racket">(require fsm)
+#| With Invariants |#
+(define S-INV empty?)
+
+(define (F-INV consumed-input)
+  (and (eq? (first consumed-input) 'a)
+       (eq? (last consumed-input) 'a)))
+
+(define (A-INV consumed-input)
+  (and (eq? (first consumed-input) 'a)
+       (not (eq? (last consumed-input) 'a))))
+
+(define (DEAD-INV consumed-input)
+  (not (eq? (first consumed-input) 'a)))
+
+
+;; visualize the machine
+(sm-visualize a*a (list 'S S-INV) 
+                  (list 'F F-INV)
+                  (list 'A A-INV) 
+                  (list 'ds DEAD-INV))</code></pre></div>
+                  <div class="row justify-content-center pb-5">
+                    <figure>
+                    <img class="img-fluid ml-5" id="exampleImage" src="./Images/aStarInv.png"/>
+                    <figcaption class=" text-muted text-center" id="caption" >Execution of a*a on the input: a b a b a, with invariants visualized</figcaption>
+                  </figure>
+                  </div>
+
+                  <h3 id="accessors">Accessors and Mutators</h3>
+            <div class="row ml-3 mb-4 mt-4">
+              <p>Here you can find examples of how to use FSM (See documentation for detailed explanation).</p>
+            </div>
+            <div class="row justify-content-center pb-5">
+<pre><code class="language-racket">(require fsm)
+(sm-getstart a*a)   ;; Gets starting states
+(sm-getfinals a*a)  ;; Gets final states
+(sm-getrules a*a)   ;; Gets rules 
+(sm-getalpha a*a)   ;; Gets alphabet
+(sm-apply a*a '(a b a b a))           ;;  Applies a input to a given machine 
+(sm-showtransitions a*a '(a a b b a)) ;;  Shows the transitions for a input to a given machine 
+(sm-test a*a 420)   ;; Tests the machine on n randomly generated inputs
+            </code></pre></div>
+      </div>    
     </div>
 
 
